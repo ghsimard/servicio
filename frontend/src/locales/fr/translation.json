@@ -1,0 +1,17 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer"
+  },
+  "search": {
+    "placeholder": "Rechercher des services...",
+    "advancedSearch": "Recherche Avancée",
+    "service": "Type de Service",
+    "location": "Emplacement",
+    "priceRange": "Fourchette de Prix",
+    "availability": "Disponibilité",
+    "search": "Rechercher"
+  }
+} 

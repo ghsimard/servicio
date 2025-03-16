@@ -1,0 +1,17 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "search": {
+    "placeholder": "Search for services...",
+    "advancedSearch": "Advanced Search",
+    "service": "Service Type",
+    "location": "Location",
+    "priceRange": "Price Range",
+    "availability": "Availability",
+    "search": "Search"
+  }
+} 
