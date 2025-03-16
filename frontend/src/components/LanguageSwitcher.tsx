@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Menu, MenuItem } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -11,7 +12,8 @@ const languages = [
 ];
 
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const { announceMessage } = useAccessibility();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -23,9 +25,10 @@ export default function LanguageSwitcher() {
     setAnchorEl(null);
   };
 
-  const handleLanguageSelect = (languageCode: string) => {
+  const handleLanguageSelect = (languageCode: string, label: string) => {
     i18n.changeLanguage(languageCode);
     handleClose();
+    announceMessage(t('language.changed', { language: label }));
   };
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language)?.label || 'English';
@@ -33,9 +36,13 @@ export default function LanguageSwitcher() {
   return (
     <>
       <Button
+        id="language-button"
+        aria-controls={open ? 'language-menu' : undefined}
+        aria-haspopup="true"
+        aria-expanded={open ? 'true' : undefined}
         onClick={handleClick}
-        startIcon={<LanguageIcon />}
-        endIcon={<KeyboardArrowDownIcon />}
+        startIcon={<LanguageIcon aria-hidden="true" />}
+        endIcon={<KeyboardArrowDownIcon aria-hidden="true" />}
         sx={{
           color: 'white',
           '&:hover': {
@@ -46,11 +53,13 @@ export default function LanguageSwitcher() {
         {currentLanguage}
       </Button>
       <Menu
+        id="language-menu"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         MenuListProps={{
           'aria-labelledby': 'language-button',
+          role: 'listbox',
         }}
         PaperProps={{
           elevation: 2,
@@ -63,8 +72,10 @@ export default function LanguageSwitcher() {
         {languages.map((language) => (
           <MenuItem
             key={language.code}
-            onClick={() => handleLanguageSelect(language.code)}
+            onClick={() => handleLanguageSelect(language.code, language.label)}
             selected={i18n.language === language.code}
+            role="option"
+            aria-selected={i18n.language === language.code}
             sx={{
               py: 1,
               px: 2

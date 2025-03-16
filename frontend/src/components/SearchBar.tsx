@@ -18,6 +18,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import ClearIcon from '@mui/icons-material/Clear';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 interface Service {
   service_id: string;
@@ -31,13 +32,14 @@ const highlightMatch = (text: string, query: string) => {
   const parts = text.split(new RegExp(`(${query})`, 'gi'));
   return parts.map((part, index) => 
     part.toLowerCase() === query.toLowerCase() ? (
-      <span key={index} style={{ textDecoration: 'underline' }}>{part}</span>
+      <span key={index} style={{ textDecoration: 'underline' }} aria-label={`matched text: ${part}`}>{part}</span>
     ) : part
   );
 };
 
 export default function SearchBar() {
   const { t } = useTranslation();
+  const { announceMessage } = useAccessibility();
   const [openAdvanced, setOpenAdvanced] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [services, setServices] = useState<Service[]>([]);
@@ -52,31 +54,34 @@ export default function SearchBar() {
     availability: '',
   });
 
-  // Add useEffect to log services changes
   useEffect(() => {
-    console.log('Services state updated:', services);
-  }, [services]);
+    if (loading) {
+      announceMessage(t('search.loading'));
+    } else if (services.length > 0) {
+      announceMessage(t('search.resultsFound', { count: services.length }));
+    } else if (searchQuery.length >= 2 && !loading) {
+      announceMessage(t('search.noResults'));
+    }
+  }, [loading, services, searchQuery, announceMessage, t]);
 
   const fetchServices = async (query: string) => {
     try {
-      console.log('Fetching services for query:', query);
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/services/search?q=${encodeURIComponent(query)}`);
       if (!response.ok) {
         throw new Error('Failed to fetch services');
       }
       const data = await response.json();
-      console.log('Fetched services:', data);
       setServices(data.services);
     } catch (error) {
       console.error('Error fetching services:', error);
       setServices([]);
+      announceMessage(t('search.error'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Type-safe debounce function
   function debounce<F extends (...args: string[]) => void>(
     func: F,
     waitFor: number
@@ -102,6 +107,7 @@ export default function SearchBar() {
       fetchServices(advancedSearch.service.name);
     }
     setOpenAdvanced(false);
+    announceMessage(t('search.advancedSearchCompleted'));
   };
 
   const handleClearAdvanced = () => {
@@ -113,20 +119,13 @@ export default function SearchBar() {
     });
     setSearchQuery('');
     setServices([]);
+    announceMessage(t('search.cleared'));
   };
 
-  useEffect(() => {
-    if (!open) {
-      setServices([]);
-    }
-  }, [open]);
-
   const handleInputChange = (newValue: string | null, reason: string) => {
-    console.log('Input change:', { newValue, reason });
     const value = newValue || '';
     setSearchQuery(value);
     
-    // Only search if we have at least 2 characters
     if (value.length >= 2) {
       debouncedFetchServices(value);
     } else {
@@ -139,6 +138,8 @@ export default function SearchBar() {
       <Box
         component="form"
         onSubmit={handleSearch}
+        role="search"
+        aria-label={t('search.mainSearch')}
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
@@ -189,6 +190,7 @@ export default function SearchBar() {
                   }));
                   setServices([]);
                   setIsDropdownOpen(false);
+                  announceMessage(t('search.serviceSelected', { name: selectedService.name }));
                 }
               }}
               onInputChange={(event, newValue, reason) => {
@@ -223,10 +225,11 @@ export default function SearchBar() {
                     fullWidth
                     inputProps={{
                       ...params.inputProps,
+                      'aria-label': t('search.serviceInput'),
                       placeholder: t('search.service')
                     }}
                     endAdornment={
-                      loading ? <CircularProgress color="inherit" size={20} /> : null
+                      loading ? <CircularProgress color="inherit" size={20} aria-label={t('search.loading')} /> : null
                     }
                     sx={{ 
                       width: '100%',
@@ -237,11 +240,16 @@ export default function SearchBar() {
               )}
               renderOption={(props, option) => (
                 <li {...props} key={option.service_id} style={{ paddingLeft: '12px' }}>
-                  <Typography variant="body1" sx={{ 
-                    fontWeight: 500,
-                    width: '100%',
-                    textAlign: 'left'
-                  }}>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      fontWeight: 500,
+                      width: '100%',
+                      textAlign: 'left'
+                    }}
+                    role="option"
+                    aria-selected={props['aria-selected']}
+                  >
                     {highlightMatch(typeof option === 'string' ? option : option.name, searchQuery)}
                   </Typography>
                 </li>
@@ -278,8 +286,8 @@ export default function SearchBar() {
                 }
               }}
               loading={loading}
-              loadingText="Loading services..."
-              noOptionsText={searchQuery.length < 2 ? "Type at least 2 characters to search" : "No services found"}
+              loadingText={t('search.loading')}
+              noOptionsText={searchQuery.length < 2 ? t('search.minChars') : t('search.noResults')}
               open={isDropdownOpen && searchQuery.length >= 2 && services.length > 0}
               forcePopupIcon={false}
               disablePortal
@@ -303,6 +311,9 @@ export default function SearchBar() {
             placeholder={t('search.location')}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+            inputProps={{
+              'aria-label': t('search.locationInput')
+            }}
           />
         </Box>
         <Box sx={{
@@ -314,6 +325,7 @@ export default function SearchBar() {
         }}>
           <IconButton
             type="submit"
+            aria-label={t('search.submit')}
             sx={{ 
               p: '10px',
               bgcolor: 'white',
@@ -327,6 +339,7 @@ export default function SearchBar() {
           </IconButton>
           <IconButton 
             onClick={() => setOpenAdvanced(true)}
+            aria-label={t('search.openAdvanced')}
             sx={{ 
               p: '10px',
               bgcolor: 'white',
@@ -346,6 +359,7 @@ export default function SearchBar() {
         onClose={() => setOpenAdvanced(false)} 
         maxWidth="sm" 
         fullWidth
+        aria-labelledby="advanced-search-dialog"
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -354,62 +368,99 @@ export default function SearchBar() {
           }
         }}
       >
-        <DialogTitle sx={{ 
-          px: 4,
-          py: 3,
-          fontSize: '1.5rem',
-          fontWeight: 500,
-          color: '#1a1a1a'
-        }}>
+        <DialogTitle 
+          id="advanced-search-dialog"
+          sx={{ 
+            px: 4,
+            py: 3,
+            fontSize: '1.5rem',
+            fontWeight: 500,
+            color: '#1a1a1a'
+          }}
+        >
           {t('search.advancedSearch')}
         </DialogTitle>
         <DialogContent sx={{ px: 4, pt: 6, pb: 5, bgcolor: 'white' }}>
-          <Box>
+          <Box role="form" aria-label={t('search.advancedSearchForm')}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Autocomplete
-                  fullWidth
-                  options={services}
-                  value={advancedSearch.service}
-                  onChange={(event, newValue) => {
-                    setAdvancedSearch({ ...advancedSearch, service: newValue });
-                    setServices([]);
-                    setIsDropdownOpen(false);
-                  }}
-                  onInputChange={(event, newValue, reason) => {
-                    if (reason === 'reset') return;
-                    handleInputChange(newValue, reason);
-                  }}
-                  onClose={() => setIsDropdownOpen(false)}
-                  onOpen={() => {
-                    if (searchQuery.length >= 2) {
-                      setIsDropdownOpen(true);
-                      fetchServices(searchQuery);
-                    }
-                  }}
-                  getOptionLabel={(option) => option.name}
-                  isOptionEqualToValue={(option, value) => option.service_id === value?.service_id}
-                  loading={loading}
-                  loadingText="Loading services..."
-                  noOptionsText={searchQuery.length < 2 ? "Type at least 2 characters to search" : "No services found"}
-                  open={isDropdownOpen && searchQuery.length >= 2 && services.length > 0}
-                  forcePopupIcon={false}
-                  disablePortal
-                  renderInput={(params) => (
+              {[
+                { name: 'service', label: t('search.service'), type: 'autocomplete' },
+                { name: 'location', label: t('search.location'), type: 'text' },
+                { name: 'priceRange', label: t('search.priceRange'), type: 'text' },
+                { name: 'availability', label: t('search.availability'), type: 'text' }
+              ].map((field) => (
+                <Grid item xs={12} key={field.name}>
+                  {field.type === 'autocomplete' ? (
+                    <Autocomplete
+                      fullWidth
+                      options={services}
+                      value={advancedSearch.service}
+                      onChange={(event, newValue) => {
+                        setAdvancedSearch({ ...advancedSearch, service: newValue });
+                        setServices([]);
+                        setIsDropdownOpen(false);
+                        if (newValue) {
+                          announceMessage(t('search.serviceSelected', { name: newValue.name }));
+                        }
+                      }}
+                      onInputChange={(event, newValue, reason) => {
+                        if (reason === 'reset') return;
+                        handleInputChange(newValue, reason);
+                      }}
+                      getOptionLabel={(option) => option.name}
+                      isOptionEqualToValue={(option, value) => option.service_id === value?.service_id}
+                      loading={loading}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          fullWidth
+                          variant="outlined"
+                          placeholder={field.label}
+                          InputProps={{
+                            ...params.InputProps,
+                            'aria-label': field.label,
+                            notched: false,
+                            endAdornment: (
+                              <>
+                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            ),
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': {
+                                top: 0,
+                                border: '1px solid rgba(0,0,0,0.23) !important',
+                                '& legend': {
+                                  display: 'none'
+                                }
+                              },
+                              '&:hover fieldset': {
+                                border: '1px solid rgba(0,0,0,0.87) !important'
+                              },
+                              '&.Mui-focused fieldset': {
+                                border: '2px solid !important',
+                                borderColor: 'primary.main !important'
+                              }
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  ) : (
                     <TextField
-                      {...params}
                       fullWidth
                       variant="outlined"
-                      placeholder={t('search.service')}
+                      placeholder={field.label}
+                      value={advancedSearch[field.name as keyof typeof advancedSearch]}
+                      onChange={(e) => setAdvancedSearch({ 
+                        ...advancedSearch, 
+                        [field.name]: e.target.value 
+                      })}
                       InputProps={{
-                        ...params.InputProps,
                         notched: false,
-                        endAdornment: (
-                          <>
-                            {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
+                        'aria-label': field.label
                       }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -431,79 +482,6 @@ export default function SearchBar() {
                       }}
                     />
                   )}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option.service_id}>
-                      <Typography variant="body1" sx={{ 
-                        fontWeight: 500,
-                        width: '100%',
-                        textAlign: 'left',
-                        py: 1.5,
-                        px: 1
-                      }}>
-                        {highlightMatch(option.name, searchQuery)}
-                      </Typography>
-                    </li>
-                  )}
-                  componentsProps={{
-                    paper: {
-                      sx: {
-                        mt: 1,
-                        borderRadius: 1,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                        '& .MuiAutocomplete-listbox': {
-                          p: 0,
-                          '& li': {
-                            borderBottom: '1px solid rgba(0,0,0,0.08)',
-                            '&:last-child': {
-                              borderBottom: 'none'
-                            },
-                            '&:hover': {
-                              backgroundColor: 'rgba(0,0,0,0.04)'
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }}
-                />
-              </Grid>
-              {[
-                { name: 'location', label: t('search.location') },
-                { name: 'priceRange', label: t('search.priceRange') },
-                { name: 'availability', label: t('search.availability') }
-              ].map((field) => (
-                <Grid item xs={12} key={field.name}>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    placeholder={field.label}
-                    value={advancedSearch[field.name as keyof typeof advancedSearch]}
-                    onChange={(e) => setAdvancedSearch({ 
-                      ...advancedSearch, 
-                      [field.name]: e.target.value 
-                    })}
-                    InputProps={{
-                      notched: false
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          top: 0,
-                          border: '1px solid rgba(0,0,0,0.23) !important',
-                          '& legend': {
-                            display: 'none'
-                          }
-                        },
-                        '&:hover fieldset': {
-                          border: '1px solid rgba(0,0,0,0.87) !important'
-                        },
-                        '&.Mui-focused fieldset': {
-                          border: '2px solid !important',
-                          borderColor: 'primary.main !important'
-                        }
-                      }
-                    }}
-                  />
                 </Grid>
               ))}
             </Grid>
@@ -523,6 +501,7 @@ export default function SearchBar() {
           <Button 
             onClick={handleClearAdvanced}
             startIcon={<ClearIcon />}
+            aria-label={t('search.clearForm')}
             sx={{
               bgcolor: 'white',
               boxShadow: 3,
@@ -536,11 +515,12 @@ export default function SearchBar() {
               }
             }}
           >
-            Clear
+            {t('common.clear')}
           </Button>
           <Box sx={{ flex: 1 }} />
           <Button 
             onClick={() => setOpenAdvanced(false)}
+            aria-label={t('common.close')}
             sx={{
               bgcolor: 'white',
               boxShadow: 3,
@@ -554,11 +534,12 @@ export default function SearchBar() {
               }
             }}
           >
-            Close
+            {t('common.close')}
           </Button>
           <Button 
             onClick={handleAdvancedSearch}
             startIcon={<SearchIcon />}
+            aria-label={t('search.performAdvancedSearch')}
             sx={{
               bgcolor: 'white',
               boxShadow: 3,
@@ -572,7 +553,7 @@ export default function SearchBar() {
               }
             }}
           >
-            Search
+            {t('search.search')}
           </Button>
         </DialogActions>
       </Dialog>
