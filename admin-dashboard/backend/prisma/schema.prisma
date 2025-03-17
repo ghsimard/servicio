@@ -1,0 +1,28 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Service {
+  id           String        @id @default(uuid())
+  name         String
+  translations Translation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Translation {
+  id             String   @id @default(uuid())
+  service        Service  @relation(fields: [serviceId], references: [id])
+  serviceId      String
+  language       String
+  translatedName String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([serviceId, language])
+} 
