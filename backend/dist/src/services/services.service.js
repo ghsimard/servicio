@@ -20,21 +20,37 @@ let ServicesService = ServicesService_1 = class ServicesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async searchServices(query) {
+    async searchServices(query, lang = 'en') {
         try {
             const searchQuery = query || '';
-            this.logger.log(`Searching services with query: "${searchQuery}"`);
+            const validLanguage = ['en', 'fr', 'es'].includes(lang) ? lang : 'en';
+            this.logger.log(`Searching services with query: "${searchQuery}", language: ${validLanguage}`);
             if (!this.prisma?.services) {
                 throw new common_1.InternalServerErrorException('Prisma service is not initialized');
             }
+            const whereCondition = {
+                is_active: true,
+            };
+            if (validLanguage === 'en') {
+                whereCondition.name_en = {
+                    contains: searchQuery,
+                    mode: 'insensitive',
+                };
+            }
+            else if (validLanguage === 'fr') {
+                whereCondition.name_fr = {
+                    contains: searchQuery,
+                    mode: 'insensitive',
+                };
+            }
+            else if (validLanguage === 'es') {
+                whereCondition.name_es = {
+                    contains: searchQuery,
+                    mode: 'insensitive',
+                };
+            }
             const results = await this.prisma.services.findMany({
-                where: {
-                    is_active: true,
-                    name_en: {
-                        contains: searchQuery,
-                        mode: 'insensitive',
-                    },
-                },
+                where: whereCondition,
                 select: {
                     service_id: true,
                     name_en: true,
@@ -42,13 +58,17 @@ let ServicesService = ServicesService_1 = class ServicesService {
                     name_es: true,
                 },
                 orderBy: {
-                    name_en: 'asc',
+                    ...(validLanguage === 'en'
+                        ? { name_en: 'asc' }
+                        : validLanguage === 'fr'
+                            ? { name_fr: 'asc' }
+                            : { name_es: 'asc' }),
                 },
             });
             if (!Array.isArray(results)) {
                 throw new common_1.InternalServerErrorException('Invalid response from database');
             }
-            this.logger.log(`Found ${results.length} services matching query "${searchQuery}"`);
+            this.logger.log(`Found ${results.length} services matching query "${searchQuery}" in language ${validLanguage}`);
             return {
                 services: results,
             };

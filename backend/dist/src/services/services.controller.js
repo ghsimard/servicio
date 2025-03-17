@@ -23,10 +23,10 @@ let ServicesController = ServicesController_1 = class ServicesController {
     constructor(servicesService) {
         this.servicesService = servicesService;
     }
-    async searchServices(query) {
-        this.logger.log(`Searching services with query: ${query}`);
+    async searchServices(query, lang = 'en') {
+        this.logger.log(`Searching services with query: ${query}, language: ${lang}`);
         try {
-            const results = await this.servicesService.searchServices(query);
+            const results = await this.servicesService.searchServices(query, lang);
             this.logger.log(`Found ${results.services.length} services`);
             return results;
         }
@@ -39,13 +39,15 @@ let ServicesController = ServicesController_1 = class ServicesController {
 exports.ServicesController = ServicesController;
 __decorate([
     (0, common_1.Get)('search'),
-    (0, swagger_1.ApiOperation)({ summary: 'Search services by name' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Search services by name with optional language filter' }),
     (0, swagger_1.ApiQuery)({ name: 'q', required: false, description: 'Search query string' }),
+    (0, swagger_1.ApiQuery)({ name: 'lang', required: false, description: 'Language code (en, fr, es)', enum: ['en', 'fr', 'es'] }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'List of services matching the search criteria' }),
     (0, swagger_1.ApiResponse)({ status: 500, description: 'Internal server error' }),
     __param(0, (0, common_1.Query)('q')),
+    __param(1, (0, common_1.Query)('lang')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], ServicesController.prototype, "searchServices", null);
 exports.ServicesController = ServicesController = ServicesController_1 = __decorate([

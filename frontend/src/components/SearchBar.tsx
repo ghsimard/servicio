@@ -91,7 +91,8 @@ export default function SearchBar() {
   const fetchServices = async (query: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/services/search?q=${encodeURIComponent(query)}`);
+      const currentLang = i18n.language;
+      const response = await fetch(`${API_BASE_URL}/services/search?q=${encodeURIComponent(query)}&lang=${currentLang}`);
       if (!response.ok) {
         throw new Error('Failed to fetch services');
       }

@@ -70,23 +70,24 @@ async function main() {
             service_id, 
             parent_service_id, 
             level, 
-            name, 
+            name_en,
+            name_fr,
+            name_es, 
             is_active, 
             metadata, 
             created_at, 
             updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           ON CONFLICT (service_id) DO NOTHING`,
           [
             service.service_id,
             service.parent_service_id,
             service.level,
-            service.name_en || '', // Use name_en as the name field
+            service.name_en || '',
+            service.name_fr,
+            service.name_es,
             service.is_active,
-            JSON.stringify({
-              name_fr: service.name_fr || '',
-              name_es: service.name_es || '',
-            }),
+            service.metadata || {},
             service.created_at,
             service.updated_at,
           ],

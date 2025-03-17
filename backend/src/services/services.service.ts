@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { services, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 // Using the database schema with name_en, name_fr, and name_es fields
 export interface SearchServicesResponse {
@@ -22,11 +22,19 @@ export class ServicesService {
 
   constructor(private prisma: PrismaService) {}
 
-  async searchServices(query: string): Promise<SearchServicesResponse> {
+  async searchServices(
+    query: string,
+    lang: string = 'en',
+  ): Promise<SearchServicesResponse> {
     try {
       // Ensure query is a string, default to empty string if undefined
       const searchQuery = query || '';
-      this.logger.log(`Searching services with query: "${searchQuery}"`);
+      // Validate language parameter
+      const validLanguage = ['en', 'fr', 'es'].includes(lang) ? lang : 'en';
+
+      this.logger.log(
+        `Searching services with query: "${searchQuery}", language: ${validLanguage}`,
+      );
 
       if (!this.prisma?.services) {
         throw new InternalServerErrorException(
@@ -34,14 +42,31 @@ export class ServicesService {
         );
       }
 
+      // Create the where condition based on the language
+      const whereCondition: Prisma.servicesWhereInput = {
+        is_active: true,
+      };
+
+      // Search in the appropriate language field
+      if (validLanguage === 'en') {
+        whereCondition.name_en = {
+          contains: searchQuery,
+          mode: 'insensitive',
+        };
+      } else if (validLanguage === 'fr') {
+        whereCondition.name_fr = {
+          contains: searchQuery,
+          mode: 'insensitive',
+        };
+      } else if (validLanguage === 'es') {
+        whereCondition.name_es = {
+          contains: searchQuery,
+          mode: 'insensitive',
+        };
+      }
+
       const results = await this.prisma.services.findMany({
-        where: {
-          is_active: true,
-          name_en: {
-            contains: searchQuery,
-            mode: 'insensitive',
-          },
-        },
+        where: whereCondition,
         select: {
           service_id: true,
           name_en: true,
@@ -49,7 +74,12 @@ export class ServicesService {
           name_es: true,
         },
         orderBy: {
-          name_en: 'asc',
+          // Order by the appropriate language field
+          ...(validLanguage === 'en'
+            ? { name_en: 'asc' }
+            : validLanguage === 'fr'
+            ? { name_fr: 'asc' }
+            : { name_es: 'asc' }),
         },
       });
 
@@ -60,7 +90,7 @@ export class ServicesService {
       }
 
       this.logger.log(
-        `Found ${results.length} services matching query "${searchQuery}"`,
+        `Found ${results.length} services matching query "${searchQuery}" in language ${validLanguage}`,
       );
 
       return {

@@ -10,14 +10,18 @@ export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
   @Get('search')
-  @ApiOperation({ summary: 'Search services by name' })
+  @ApiOperation({ summary: 'Search services by name with optional language filter' })
   @ApiQuery({ name: 'q', required: false, description: 'Search query string' })
+  @ApiQuery({ name: 'lang', required: false, description: 'Language code (en, fr, es)', enum: ['en', 'fr', 'es'] })
   @ApiResponse({ status: 200, description: 'List of services matching the search criteria' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async searchServices(@Query('q') query: string): Promise<SearchServicesResponse> {
-    this.logger.log(`Searching services with query: ${query}`);
+  async searchServices(
+    @Query('q') query: string,
+    @Query('lang') lang: string = 'en'
+  ): Promise<SearchServicesResponse> {
+    this.logger.log(`Searching services with query: ${query}, language: ${lang}`);
     try {
-      const results = await this.servicesService.searchServices(query);
+      const results = await this.servicesService.searchServices(query, lang);
       this.logger.log(`Found ${results.services.length} services`);
       return results;
     } catch (error) {

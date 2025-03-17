@@ -11,5 +11,5 @@ export declare class ServicesService {
     private prisma;
     private readonly logger;
     constructor(prisma: PrismaService);
-    searchServices(query: string): Promise<SearchServicesResponse>;
+    searchServices(query: string, lang?: string): Promise<SearchServicesResponse>;
 }
