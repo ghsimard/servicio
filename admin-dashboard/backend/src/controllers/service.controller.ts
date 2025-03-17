@@ -10,11 +10,7 @@ export class ServiceController {
   async getAllServices() {
     try {
       console.log('Fetching all services...'); // Debug log
-      const services = await this.prisma.service.findMany({
-        include: {
-          translations: true,
-        },
-      });
+      const services = await this.prisma.services.findMany();
       console.log(`Found ${services.length} services`); // Debug log
       return services;
     } catch (error) {
@@ -31,10 +27,9 @@ export class ServiceController {
     try {
       console.log(`Attempting to delete service with ID: ${id}`); // Debug log
       
-      // First, check if the service has translations
-      const service = await this.prisma.service.findUnique({
-        where: { id },
-        include: { translations: true },
+      // First, check if the service exists
+      const service = await this.prisma.services.findUnique({
+        where: { service_id: id },
       });
 
       if (!service) {
@@ -42,30 +37,31 @@ export class ServiceController {
         throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
       }
 
-      console.log(`Service found. Translations count: ${service.translations.length}`); // Debug log
+      console.log(`Service found: ${service.name_en}`); // Debug log
 
-      if (service.translations.length > 0) {
-        console.log(`Cannot delete service ${id} due to existing translations`); // Debug log
+      // Check if this service is referenced by other services
+      const referencingServices = await this.prisma.services.findMany({
+        where: { parent_service_id: id },
+      });
+
+      if (referencingServices.length > 0) {
+        console.log(`Cannot delete service ${id} due to child services`); // Debug log
         throw new HttpException(
           {
-            message: 'Cannot delete service with existing translations',
+            message: 'Cannot delete service with child services',
             details: {
               serviceId: id,
               serviceName: service.name_en,
-              translationCount: service.translations.length,
-              translations: service.translations.map(t => ({
-                language: t.language,
-                translatedName: t.translatedName,
-              })),
+              childServiceCount: referencingServices.length,
             },
           },
           HttpStatus.CONFLICT,
         );
       }
 
-      // If no translations exist, proceed with deletion
-      await this.prisma.service.delete({
-        where: { id },
+      // If no references exist, proceed with deletion
+      await this.prisma.services.delete({
+        where: { service_id: id },
       });
       console.log(`Service ${id} deleted successfully`); // Debug log
 

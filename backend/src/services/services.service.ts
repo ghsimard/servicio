@@ -6,8 +6,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { services, Prisma } from '@prisma/client';
 
+// Using the database schema with name_en, name_fr, and name_es fields
 export interface SearchServicesResponse {
-  services: Pick<services, 'service_id' | 'name_en' | 'name_fr' | 'name_es'>[];
+  services: Array<{
+    service_id: string;
+    name_en: string;
+    name_fr: string | null;
+    name_es: string | null;
+  }>;
 }
 
 @Injectable()
@@ -31,26 +37,10 @@ export class ServicesService {
       const results = await this.prisma.services.findMany({
         where: {
           is_active: true,
-          OR: [
-            {
-              name_en: {
-                contains: searchQuery,
-                mode: 'insensitive',
-              },
-            },
-            {
-              name_fr: {
-                contains: searchQuery,
-                mode: 'insensitive',
-              },
-            },
-            {
-              name_es: {
-                contains: searchQuery,
-                mode: 'insensitive',
-              },
-            },
-          ],
+          name_en: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
         },
         select: {
           service_id: true,

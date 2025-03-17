@@ -21,11 +21,12 @@ import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 
+// Temporary interface to handle both old and new API formats
 interface Service {
   service_id: string;
   name_en: string;
-  name_fr?: string;
-  name_es?: string;
+  name_fr?: string | null;
+  name_es?: string | null;
 }
 
 const API_BASE_URL = 'http://localhost:3001/api';
@@ -127,7 +128,8 @@ export default function SearchBar() {
 
   const handleAdvancedSearch = () => {
     if (advancedSearch.service) {
-      fetchServices(getLocalizedName(advancedSearch.service));
+      const searchTerm = getLocalizedName(advancedSearch.service);
+      fetchServices(searchTerm);
     }
     setOpenAdvanced(false);
     announceMessage(t('search.advancedSearchCompleted'));
@@ -161,15 +163,21 @@ export default function SearchBar() {
     }
   };
 
-  // Function to get the service name in the current language
+  // Function to get the service name based on current language
   const getLocalizedName = (service: Service): string => {
     const currentLang = i18n.language;
+    
+    // Handle both old and new API formats
+    const name_en = service.name_en || '';
+    
     if (currentLang === 'fr' && service.name_fr) {
       return service.name_fr;
     } else if (currentLang === 'es' && service.name_es) {
       return service.name_es;
     }
-    return service.name_en; // Default to English
+    
+    // Default to English
+    return name_en;
   };
 
   // Add a service to search history
@@ -250,7 +258,7 @@ export default function SearchBar() {
               onChange={(event, newValue) => {
                 if (newValue) {
                   const selectedService = typeof newValue === 'string' 
-                    ? { service_id: '', name_en: newValue } 
+                    ? { service_id: '', name_en: newValue, name_fr: null, name_es: null } 
                     : newValue;
                   
                   setSearchQuery(getLocalizedName(selectedService));
@@ -476,12 +484,18 @@ export default function SearchBar() {
                       fullWidth
                       options={services}
                       value={advancedSearch.service}
-                      onChange={(event, newValue) => {
-                        setAdvancedSearch({ ...advancedSearch, service: newValue });
-                        setServices([]);
-                        setIsDropdownOpen(false);
+                      onChange={(e, newValue) => {
                         if (newValue) {
                           announceMessage(t('search.serviceSelected', { name: getLocalizedName(newValue) }));
+                          setAdvancedSearch({
+                            ...advancedSearch,
+                            service: newValue
+                          });
+                        } else {
+                          setAdvancedSearch({
+                            ...advancedSearch,
+                            service: null
+                          });
                         }
                       }}
                       onInputChange={(event, newValue, reason) => {

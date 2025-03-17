@@ -8,7 +8,8 @@ async function main() {
         const services = [
             {
                 name_en: 'House Cleaning',
-                description: 'Professional house cleaning services',
+                name_fr: 'Nettoyage de maison',
+                name_es: 'Limpieza de casa',
                 level: 1,
                 is_active: true,
                 metadata: {},
@@ -17,7 +18,8 @@ async function main() {
             },
             {
                 name_en: 'Gardening',
-                description: 'Garden maintenance and landscaping',
+                name_fr: 'Jardinage',
+                name_es: 'Jardinería',
                 level: 1,
                 is_active: true,
                 metadata: {},
@@ -26,7 +28,8 @@ async function main() {
             },
             {
                 name_en: 'Plumbing',
-                description: 'Professional plumbing services',
+                name_fr: 'Plomberie',
+                name_es: 'Fontanería',
                 level: 1,
                 is_active: true,
                 metadata: {},
@@ -35,7 +38,8 @@ async function main() {
             },
             {
                 name_en: 'Electrical Work',
-                description: 'Electrical installation and repairs',
+                name_fr: 'Travaux électriques',
+                name_es: 'Trabajo eléctrico',
                 level: 1,
                 is_active: true,
                 metadata: {},
@@ -44,7 +48,8 @@ async function main() {
             },
             {
                 name_en: 'Painting',
-                description: 'Interior and exterior painting services',
+                name_fr: 'Peinture',
+                name_es: 'Pintura',
                 level: 1,
                 is_active: true,
                 metadata: {},

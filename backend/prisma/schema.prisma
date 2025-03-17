@@ -7,25 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Helpers {
-  id                String    @id @db.Uuid
-  name              String    @db.VarChar(255)
-  email             String    @unique @db.VarChar(255)
-  phone             String?   @db.VarChar(255)
-  businessName      String?   @db.VarChar(255)
-  services          Json      @default("[]")
-  yearsOfExperience Int?
-  age               Int?
-  languages         Json      @default("[]")
-  rating            Float?
-  gender            String?   @db.VarChar(255)
-  certified         Boolean   @default(false)
-  latitude          Float?
-  longitude         Float?
-  createdAt         DateTime  @db.Timestamptz(6)
-  updatedAt         DateTime  @db.Timestamptz(6)
-}
-
 model services {
   service_id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   parent_service_id String?           @db.Uuid
@@ -43,6 +24,25 @@ model services {
   other_services    services[]        @relation("servicesToservices")
 
   @@index([parent_service_id], map: "idx_services_parent_service_id")
+}
+
+model Helpers {
+  id                String   @id @db.Uuid
+  name              String   @db.VarChar(255)
+  email             String   @unique @db.VarChar(255)
+  phone             String?  @db.VarChar(255)
+  businessName      String?  @db.VarChar(255)
+  services          Json     @default("[]")
+  yearsOfExperience Int?
+  age               Int?
+  languages         Json     @default("[]")
+  rating            Float?
+  gender            String?  @db.VarChar(255)
+  certified         Boolean  @default(false)
+  latitude          Float?
+  longitude         Float?
+  createdAt         DateTime @db.Timestamptz(6)
+  updatedAt         DateTime @db.Timestamptz(6)
 }
 
 model addresses {
@@ -358,7 +358,6 @@ model realtime_locations {
   @@index([user_id], map: "idx_realtime_locations_user_id")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model reviews {
   review_id  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   booking_id String    @db.Uuid
@@ -404,15 +403,6 @@ model rfps {
 
   @@index([needer_id], map: "idx_rfps_needer_id")
   @@index([service_id], map: "idx_rfps_service_id")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model spatial_ref_sys {
-  srid      Int     @id
-  auth_name String? @db.VarChar(256)
-  auth_srid Int?
-  srtext    String? @db.VarChar(2048)
-  proj4text String? @db.VarChar(2048)
 }
 
 model subscriptions {
@@ -462,7 +452,6 @@ model tax_rules {
   @@index([jurisdiction_code], map: "idx_tax_rules_jurisdiction_code")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model transaction_taxes {
   transaction_tax_id String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   transaction_id     String       @db.Uuid

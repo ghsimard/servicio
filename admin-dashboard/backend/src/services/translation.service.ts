@@ -28,13 +28,12 @@ export class TranslationService {
 
   async startTranslation(targetLanguage: 'fr' | 'es'): Promise<TranslationJob> {
     const jobId = Date.now().toString();
-    const services = await this.prisma.service.findMany({
+    const services = await this.prisma.services.findMany({
       where: {
-        translations: {
-          none: {
-            language: targetLanguage,
-          },
-        },
+        // For now, just find services where the target language field is null
+        ...(targetLanguage === 'fr' 
+          ? { name_fr: null } 
+          : { name_es: null })
       },
     });
 
@@ -104,11 +103,15 @@ export class TranslationService {
       // Update translations in database
       for (let i = 0; i < services.length; i++) {
         try {
-          await this.prisma.translation.create({
+          // Update the service directly with translated name
+          await this.prisma.services.update({
+            where: {
+              service_id: services[i].service_id
+            },
             data: {
-              serviceId: services[i].id,
-              language: targetLanguage,
-              translatedName: translations[i],
+              ...(targetLanguage === 'fr' 
+                ? { name_fr: translations[i] }
+                : { name_es: translations[i] })
             },
           });
           
