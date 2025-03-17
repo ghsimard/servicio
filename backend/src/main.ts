@@ -8,7 +8,7 @@ async function bootstrap() {
   
   // Enable CORS for the frontend
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'], // Frontend ports
+    origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'], // Frontend and admin-dashboard ports
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -33,12 +33,12 @@ async function bootstrap() {
     .setDescription('The Servicio API Documentation')
     .setVersion('1.0')
     .addBearerAuth()
-    .addServer('http://localhost:3000', 'Local environment')
+    .addServer('http://localhost:3001', 'Local environment')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 3000; // Use PORT from environment or default to 3000
+  const port = 3001; // Fixed port for backend
   await app.listen(port);
   console.log(`
 Application is running on: http://localhost:${port}

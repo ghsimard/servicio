@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3002/api/translation';
+const API_BASE_URL = 'http://localhost:3003/api/translation';
 
 export interface TranslationJob {
   id: string;

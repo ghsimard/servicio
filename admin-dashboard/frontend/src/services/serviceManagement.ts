@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-const API_BASE_URL = 'http://localhost:3002/api/services';
+const API_BASE_URL = 'http://localhost:3003/api/services';
 
 export interface Service {
   id: string;
