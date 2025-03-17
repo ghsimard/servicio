@@ -7,7 +7,7 @@ async function main() {
         await prisma.services.deleteMany({});
         const services = [
             {
-                name: 'House Cleaning',
+                name_en: 'House Cleaning',
                 description: 'Professional house cleaning services',
                 level: 1,
                 is_active: true,
@@ -16,7 +16,7 @@ async function main() {
                 updated_at: new Date(),
             },
             {
-                name: 'Gardening',
+                name_en: 'Gardening',
                 description: 'Garden maintenance and landscaping',
                 level: 1,
                 is_active: true,
@@ -25,7 +25,7 @@ async function main() {
                 updated_at: new Date(),
             },
             {
-                name: 'Plumbing',
+                name_en: 'Plumbing',
                 description: 'Professional plumbing services',
                 level: 1,
                 is_active: true,
@@ -34,7 +34,7 @@ async function main() {
                 updated_at: new Date(),
             },
             {
-                name: 'Electrical Work',
+                name_en: 'Electrical Work',
                 description: 'Electrical installation and repairs',
                 level: 1,
                 is_active: true,
@@ -43,7 +43,7 @@ async function main() {
                 updated_at: new Date(),
             },
             {
-                name: 'Painting',
+                name_en: 'Painting',
                 description: 'Interior and exterior painting services',
                 level: 1,
                 is_active: true,
@@ -69,7 +69,7 @@ main()
     console.error('Error:', e);
     process.exit(1);
 })
-    .finally(async () => {
-    await prisma.$disconnect();
+    .finally(() => {
+    prisma.$disconnect();
 });
 //# sourceMappingURL=seed.js.map

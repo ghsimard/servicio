@@ -3,7 +3,9 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "edit": "Editar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "login": "Acceder",
+    "become_helper": "Conviértete en Helper"
   },
   "search": {
     "placeholder": "Buscar servicios...",

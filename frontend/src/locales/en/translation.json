@@ -3,7 +3,9 @@
     "cancel": "Cancel",
     "save": "Save",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "login": "Sign in",
+    "become_helper": "Become a Helper"
   },
   "search": {
     "placeholder": "Search for services...",

@@ -51,7 +51,7 @@ export class ServiceController {
             message: 'Cannot delete service with existing translations',
             details: {
               serviceId: id,
-              serviceName: service.name,
+              serviceName: service.name_en,
               translationCount: service.translations.length,
               translations: service.translations.map(t => ({
                 language: t.language,

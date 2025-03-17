@@ -12,11 +12,11 @@ async function cleanAndSeed() {
     // Add fresh test services
     console.log('\nAdding test services...');
     const testServices = [
-      { name: 'House Cleaning' },
-      { name: 'Lawn Maintenance' },
-      { name: 'Window Washing' },
-      { name: 'Carpet Cleaning' },
-      { name: 'Pool Maintenance' },
+      { name_en: 'House Cleaning' },
+      { name_en: 'Lawn Maintenance' },
+      { name_en: 'Window Washing' },
+      { name_en: 'Carpet Cleaning' },
+      { name_en: 'Pool Maintenance' },
     ];
 
     for (const service of testServices) {
@@ -30,7 +30,7 @@ async function cleanAndSeed() {
     // Verify the services
     const services = await prisma.service.findMany();
     console.log(`\nVerification: ${services.length} services in database:`);
-    services.forEach(service => console.log(`- ${service.name}`));
+    services.forEach(service => console.log(`- ${service.name_en}`));
   } catch (error) {
     console.error('Error:', error);
   } finally {

@@ -30,7 +30,9 @@ model services {
   service_id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   parent_service_id String?           @db.Uuid
   level             Int
-  name              String            @db.VarChar(100)
+  name_en           String            @db.VarChar(100)
+  name_fr           String?           @db.VarChar(100)
+  name_es           String?           @db.VarChar(100)
   is_active         Boolean           @default(true)
   metadata          Json?
   created_at        DateTime?         @default(now()) @db.Timestamp(6)

@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { services, Prisma } from '@prisma/client';
 
 export interface SearchServicesResponse {
-  services: Pick<services, 'service_id' | 'name'>[];
+  services: Pick<services, 'service_id' | 'name_en' | 'name_fr' | 'name_es'>[];
 }
 
 @Injectable()
@@ -23,34 +23,56 @@ export class ServicesService {
       this.logger.log(`Searching services with query: "${searchQuery}"`);
 
       if (!this.prisma?.services) {
-        throw new InternalServerErrorException('Prisma service is not initialized');
+        throw new InternalServerErrorException(
+          'Prisma service is not initialized',
+        );
       }
 
       const results = await this.prisma.services.findMany({
         where: {
           is_active: true,
-          name: {
-            contains: searchQuery,
-            mode: 'insensitive',
-          },
+          OR: [
+            {
+              name_en: {
+                contains: searchQuery,
+                mode: 'insensitive',
+              },
+            },
+            {
+              name_fr: {
+                contains: searchQuery,
+                mode: 'insensitive',
+              },
+            },
+            {
+              name_es: {
+                contains: searchQuery,
+                mode: 'insensitive',
+              },
+            },
+          ],
         },
         select: {
           service_id: true,
-          name: true,
+          name_en: true,
+          name_fr: true,
+          name_es: true,
         },
         orderBy: {
-          name: 'asc',
+          name_en: 'asc',
         },
       });
 
       if (!Array.isArray(results)) {
-        throw new InternalServerErrorException('Invalid response from database');
+        throw new InternalServerErrorException(
+          'Invalid response from database',
+        );
       }
 
       this.logger.log(
         `Found ${results.length} services matching query "${searchQuery}"`,
       );
-      
+
       return {
         services: results,
       };
@@ -74,4 +96,4 @@ export class ServicesService {
       throw new InternalServerErrorException('Error searching services');
     }
   }
-} 
+}

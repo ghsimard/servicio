@@ -86,7 +86,7 @@ export class TranslationService {
         return;
       }
 
-      const serviceNames = services.map(s => s.name);
+      const serviceNames = services.map(s => s.name_en);
       
       // Check if all service names are valid
       if (serviceNames.some(name => !name || name.trim() === '')) {
@@ -115,7 +115,7 @@ export class TranslationService {
           job.completedServices++;
           this.activeJobs.set(jobId, job);
         } catch (error) {
-          job.errors.push(`Failed to save translation for service ${services[i].name}: ${error.message}`);
+          job.errors.push(`Failed to save translation for service ${services[i].name_en}: ${error.message}`);
         }
       }
 

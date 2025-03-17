@@ -9,7 +9,9 @@ generator client {
 
 model Service {
   id           String        @id @default(uuid())
-  name         String
+  name_en      String
+  name_fr      String?
+  name_es      String?
   translations Translation[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt

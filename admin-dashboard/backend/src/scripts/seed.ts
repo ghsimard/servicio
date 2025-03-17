@@ -4,11 +4,11 @@ const prisma = new PrismaClient();
 
 async function main() {
   const testServices = [
-    { name: 'House Cleaning' },
-    { name: 'Lawn Maintenance' },
-    { name: 'Window Washing' },
-    { name: 'Carpet Cleaning' },
-    { name: 'Pool Maintenance' },
+    { name_en: 'House Cleaning' },
+    { name_en: 'Lawn Maintenance' },
+    { name_en: 'Window Washing' },
+    { name_en: 'Carpet Cleaning' },
+    { name_en: 'Pool Maintenance' },
   ];
 
   for (const service of testServices) {
@@ -25,6 +25,6 @@ main()
     console.error('Error seeding the database:', e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    prisma.$disconnect();
   }); 

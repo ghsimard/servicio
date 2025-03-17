@@ -18,14 +18,23 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import ClearIcon from '@mui/icons-material/Clear';
+import HistoryIcon from '@mui/icons-material/History';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 
 interface Service {
   service_id: string;
-  name: string;
+  name_en: string;
+  name_fr?: string;
+  name_es?: string;
 }
 
 const API_BASE_URL = 'http://localhost:3001/api';
+
+// Maximum number of search history items to store
+const MAX_HISTORY_ITEMS = 10;
+
+// Local storage key for search history
+const SEARCH_HISTORY_KEY = 'serviceSearchHistory';
 
 const highlightMatch = (text: string, query: string) => {
   if (!query) return text;
@@ -38,7 +47,7 @@ const highlightMatch = (text: string, query: string) => {
 };
 
 export default function SearchBar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { announceMessage } = useAccessibility();
   const [openAdvanced, setOpenAdvanced] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +55,7 @@ export default function SearchBar() {
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<Service[]>([]);
   
   const [advancedSearch, setAdvancedSearch] = useState({
     service: null as Service | null,
@@ -54,12 +64,25 @@ export default function SearchBar() {
     availability: '',
   });
 
+  // Load search history from local storage on component mount
+  useEffect(() => {
+    const storedHistory = localStorage.getItem(SEARCH_HISTORY_KEY);
+    if (storedHistory) {
+      try {
+        const parsedHistory = JSON.parse(storedHistory);
+        setSearchHistory(parsedHistory);
+      } catch (error) {
+        console.error('Error parsing search history:', error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (loading) {
       announceMessage(t('search.loading'));
     } else if (services.length > 0) {
       announceMessage(t('search.resultsFound', { count: services.length }));
-    } else if (searchQuery.length >= 2 && !loading) {
+    } else if (searchQuery.length >= 3 && !loading) {
       announceMessage(t('search.noResults'));
     }
   }, [loading, services, searchQuery, announceMessage, t]);
@@ -104,7 +127,7 @@ export default function SearchBar() {
 
   const handleAdvancedSearch = () => {
     if (advancedSearch.service) {
-      fetchServices(advancedSearch.service.name);
+      fetchServices(getLocalizedName(advancedSearch.service));
     }
     setOpenAdvanced(false);
     announceMessage(t('search.advancedSearchCompleted'));
@@ -122,16 +145,63 @@ export default function SearchBar() {
     announceMessage(t('search.cleared'));
   };
 
-  const handleInputChange = (newValue: string | null, reason: string) => {
+  const handleInputChange = (newValue: string | null) => {
     const value = newValue || '';
     setSearchQuery(value);
     
-    if (value.length >= 2) {
+    if (value.length >= 3) {
       debouncedFetchServices(value);
+    } else if (value.length > 0 && value.length < 3) {
+      // Show search history when typing the first or second letter
+      setServices([]);
+      setIsDropdownOpen(true);
     } else {
       setServices([]);
+      setIsDropdownOpen(false);
     }
   };
+
+  // Function to get the service name in the current language
+  const getLocalizedName = (service: Service): string => {
+    const currentLang = i18n.language;
+    if (currentLang === 'fr' && service.name_fr) {
+      return service.name_fr;
+    } else if (currentLang === 'es' && service.name_es) {
+      return service.name_es;
+    }
+    return service.name_en; // Default to English
+  };
+
+  // Add a service to search history
+  const addToSearchHistory = (service: Service) => {
+    // Create a new history array without the selected service (if it exists)
+    const filteredHistory = searchHistory.filter(item => item.service_id !== service.service_id);
+    
+    // Add the service to the beginning of the array
+    const newHistory = [service, ...filteredHistory].slice(0, MAX_HISTORY_ITEMS);
+    
+    // Update state and local storage
+    setSearchHistory(newHistory);
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory));
+  };
+
+  // Get options to display based on query length
+  const getDisplayOptions = () => {
+    if (searchQuery.length >= 3) {
+      return services;
+    } else if (searchQuery.length > 0) {
+      // Filter history by the first letters
+      return searchHistory.filter(service => 
+        getLocalizedName(service).toLowerCase().startsWith(searchQuery.toLowerCase())
+      );
+    }
+    return [];
+  };
+
+  const displayOptions = getDisplayOptions();
+  const showDropdown = isDropdownOpen && 
+    ((searchQuery.length >= 3 && services.length > 0) || 
+     (searchQuery.length > 0 && searchQuery.length < 3 && searchHistory.length > 0));
 
   return (
     <>
@@ -174,43 +244,49 @@ export default function SearchBar() {
                   position: 'relative !important'
                 }
               }}
-              options={services}
+              options={displayOptions}
               value={null}
               inputValue={searchQuery}
               onChange={(event, newValue) => {
                 if (newValue) {
                   const selectedService = typeof newValue === 'string' 
-                    ? { service_id: '', name: newValue } 
+                    ? { service_id: '', name_en: newValue } 
                     : newValue;
                   
-                  setSearchQuery(selectedService.name);
+                  setSearchQuery(getLocalizedName(selectedService));
                   setAdvancedSearch(prev => ({
                     ...prev,
                     service: selectedService
                   }));
+                  
+                  // Add to search history
+                  addToSearchHistory(selectedService);
+                  
                   setServices([]);
                   setIsDropdownOpen(false);
-                  announceMessage(t('search.serviceSelected', { name: selectedService.name }));
+                  announceMessage(t('search.serviceSelected', { name: getLocalizedName(selectedService) }));
                 }
               }}
               onInputChange={(event, newValue, reason) => {
                 if (reason === 'reset') {
                   return;
                 }
-                handleInputChange(newValue, reason);
+                handleInputChange(newValue);
               }}
               onClose={() => {
                 setIsDropdownOpen(false);
               }}
               onOpen={() => {
-                if (searchQuery.length >= 2) {
+                if (searchQuery.length >= 3) {
                   setIsDropdownOpen(true);
                   fetchServices(searchQuery);
+                } else if (searchQuery.length > 0 && searchQuery.length < 3 && searchHistory.length > 0) {
+                  setIsDropdownOpen(true);
                 }
               }}
               freeSolo
               getOptionLabel={(option) => {
-                return typeof option === 'string' ? option : option.name;
+                return typeof option === 'string' ? option : getLocalizedName(option);
               }}
               renderInput={(params) => (
                 <Box
@@ -240,18 +316,23 @@ export default function SearchBar() {
               )}
               renderOption={(props, option) => (
                 <li {...props} key={option.service_id} style={{ paddingLeft: '12px' }}>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      fontWeight: 500,
-                      width: '100%',
-                      textAlign: 'left'
-                    }}
-                    role="option"
-                    aria-selected={props['aria-selected']}
-                  >
-                    {highlightMatch(typeof option === 'string' ? option : option.name, searchQuery)}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    {searchHistory.some(item => item.service_id === option.service_id) && searchQuery.length === 1 && (
+                      <HistoryIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                    )}
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontWeight: 500,
+                        width: '100%',
+                        textAlign: 'left'
+                      }}
+                      role="option"
+                      aria-selected={props['aria-selected']}
+                    >
+                      {highlightMatch(typeof option === 'string' ? option : getLocalizedName(option), searchQuery)}
+                    </Typography>
+                  </Box>
                 </li>
               )}
               componentsProps={{
@@ -287,8 +368,8 @@ export default function SearchBar() {
               }}
               loading={loading}
               loadingText={t('search.loading')}
-              noOptionsText={searchQuery.length < 2 ? t('search.minChars') : t('search.noResults')}
-              open={isDropdownOpen && searchQuery.length >= 2 && services.length > 0}
+              noOptionsText={searchQuery.length === 1 || searchQuery.length === 2 ? t('search.noHistory') : searchQuery.length < 3 ? t('search.minChars') : t('search.noResults')}
+              open={showDropdown}
               forcePopupIcon={false}
               disablePortal
             />
@@ -400,14 +481,14 @@ export default function SearchBar() {
                         setServices([]);
                         setIsDropdownOpen(false);
                         if (newValue) {
-                          announceMessage(t('search.serviceSelected', { name: newValue.name }));
+                          announceMessage(t('search.serviceSelected', { name: getLocalizedName(newValue) }));
                         }
                       }}
                       onInputChange={(event, newValue, reason) => {
                         if (reason === 'reset') return;
-                        handleInputChange(newValue, reason);
+                        handleInputChange(newValue);
                       }}
-                      getOptionLabel={(option) => option.name}
+                      getOptionLabel={(option) => getLocalizedName(option)}
                       isOptionEqualToValue={(option, value) => option.service_id === value?.service_id}
                       loading={loading}
                       renderInput={(params) => (

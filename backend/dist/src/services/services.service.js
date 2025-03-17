@@ -30,17 +30,35 @@ let ServicesService = ServicesService_1 = class ServicesService {
             const results = await this.prisma.services.findMany({
                 where: {
                     is_active: true,
-                    name: {
-                        contains: searchQuery,
-                        mode: 'insensitive',
-                    },
+                    OR: [
+                        {
+                            name_en: {
+                                contains: searchQuery,
+                                mode: 'insensitive',
+                            },
+                        },
+                        {
+                            name_fr: {
+                                contains: searchQuery,
+                                mode: 'insensitive',
+                            },
+                        },
+                        {
+                            name_es: {
+                                contains: searchQuery,
+                                mode: 'insensitive',
+                            },
+                        },
+                    ],
                 },
                 select: {
                     service_id: true,
-                    name: true,
+                    name_en: true,
+                    name_fr: true,
+                    name_es: true,
                 },
                 orderBy: {
-                    name: 'asc',
+                    name_en: 'asc',
                 },
             });
             if (!Array.isArray(results)) {
