@@ -10,8 +10,16 @@ const resources = {
         edit: 'Edit',
         delete: 'Delete',
         login: 'Sign in',
+        signUp: 'Sign up',
         clear: 'Clear',
-        close: 'Close'
+        close: 'Close',
+        profile: 'Profile',
+        logout: 'Logout',
+        testUI: 'Test UI',
+        authTest: 'Auth Test',
+        register: 'Register',
+        verifyEmail: 'Verify Email',
+        test: 'Test'
       },
       app: {
         title: 'Servicio',
@@ -53,6 +61,51 @@ const resources = {
       },
       language: {
         changed: 'Language changed to {{language}}'
+      },
+      auth: {
+        pageTitle: 'Authentication Test Page',
+        register: {
+          title: 'Register a New Account',
+          description: 'Create a new account with your email. After registration, you\'ll need to verify your email address.',
+          fullName: 'Full Name',
+          email: 'Email',
+          password: 'Password',
+          passwordHelp: 'Password must be at least 8 characters long',
+          buttonText: 'Register',
+          success: 'Registration successful! Please verify your email with the token provided.'
+        },
+        login: {
+          title: 'Login to Your Account',
+          description: 'Please login with your email and password. You must verify your email address before logging in.',
+          email: 'Email',
+          password: 'Password',
+          buttonText: 'Login',
+          failed: 'Login failed'
+        },
+        verify: {
+          title: 'Verify Your Email',
+          description: 'Enter the verification token that was provided during registration to verify your email address. In a real application, this token would be sent to your email.',
+          token: 'Verification Token',
+          buttonText: 'Verify Email',
+          success: 'Email verified successfully. You can now log in.',
+          failed: 'Email verification failed'
+        },
+        protected: {
+          title: 'Test Protected Endpoint',
+          endpoint: 'Endpoint Path',
+          buttonText: 'Test Protected Endpoint',
+          noToken: 'No authentication token available. Please login first.',
+          failed: 'Request to protected endpoint failed',
+          connectionError: 'Failed to connect to the server'
+        },
+        status: {
+          title: 'Authentication Status',
+          userId: 'User ID',
+          notLoggedIn: 'Not logged in',
+          token: 'Token',
+          noToken: 'No token'
+        },
+        apiResponse: 'API Response'
       }
     }
   },
@@ -64,8 +117,16 @@ const resources = {
         edit: 'Modifier',
         delete: 'Supprimer',
         login: 'Connexion',
+        signUp: 'Inscription',
         clear: 'Effacer',
-        close: 'Fermer'
+        close: 'Fermer',
+        profile: 'Profil',
+        logout: 'Déconnexion',
+        testUI: 'Test UI',
+        authTest: 'Test Auth',
+        register: 'S\'inscrire',
+        verifyEmail: 'Vérifier Email',
+        test: 'Tester'
       },
       app: {
         title: 'Servicio',
@@ -107,6 +168,51 @@ const resources = {
       },
       language: {
         changed: 'Langue changée en {{language}}'
+      },
+      auth: {
+        pageTitle: 'Page de Test d\'Authentification',
+        register: {
+          title: 'Créer un Nouveau Compte',
+          description: 'Créez un nouveau compte avec votre email. Après l\'inscription, vous devrez vérifier votre adresse email.',
+          fullName: 'Nom Complet',
+          email: 'Email',
+          password: 'Mot de passe',
+          passwordHelp: 'Le mot de passe doit comporter au moins 8 caractères',
+          buttonText: 'S\'inscrire',
+          success: 'Inscription réussie ! Veuillez vérifier votre email avec le jeton fourni.'
+        },
+        login: {
+          title: 'Connexion à Votre Compte',
+          description: 'Veuillez vous connecter avec votre email et mot de passe. Vous devez vérifier votre adresse email avant de vous connecter.',
+          email: 'Email',
+          password: 'Mot de passe',
+          buttonText: 'Se connecter',
+          failed: 'Échec de la connexion'
+        },
+        verify: {
+          title: 'Vérifier Votre Email',
+          description: 'Entrez le jeton de vérification qui vous a été fourni lors de l\'inscription pour vérifier votre adresse email. Dans une application réelle, ce jeton serait envoyé à votre email.',
+          token: 'Jeton de Vérification',
+          buttonText: 'Vérifier Email',
+          success: 'Email vérifié avec succès. Vous pouvez maintenant vous connecter.',
+          failed: 'Échec de la vérification de l\'email'
+        },
+        protected: {
+          title: 'Tester un Point de Terminaison Protégé',
+          endpoint: 'Chemin du Point de Terminaison',
+          buttonText: 'Tester le Point de Terminaison Protégé',
+          noToken: 'Aucun jeton d\'authentification disponible. Veuillez vous connecter d\'abord.',
+          failed: 'Échec de la requête au point de terminaison protégé',
+          connectionError: 'Échec de la connexion au serveur'
+        },
+        status: {
+          title: 'Statut d\'Authentification',
+          userId: 'ID Utilisateur',
+          notLoggedIn: 'Non connecté',
+          token: 'Jeton',
+          noToken: 'Pas de jeton'
+        },
+        apiResponse: 'Réponse API'
       }
     }
   },
@@ -118,8 +224,16 @@ const resources = {
         edit: 'Editar',
         delete: 'Eliminar',
         login: 'Acceder',
+        signUp: 'Registrarse',
         clear: 'Limpiar',
-        close: 'Cerrar'
+        close: 'Cerrar',
+        profile: 'Perfil',
+        logout: 'Cerrar sesión',
+        testUI: 'Probar UI',
+        authTest: 'Probar Auth',
+        register: 'Registrarse',
+        verifyEmail: 'Verificar Email',
+        test: 'Probar'
       },
       app: {
         title: 'Servicio',
@@ -161,6 +275,51 @@ const resources = {
       },
       language: {
         changed: 'Idioma cambiado a {{language}}'
+      },
+      auth: {
+        pageTitle: 'Página de Prueba de Autenticación',
+        register: {
+          title: 'Registrar una Nueva Cuenta',
+          description: 'Cree una nueva cuenta con su correo electrónico. Después del registro, deberá verificar su dirección de correo electrónico.',
+          fullName: 'Nombre Completo',
+          email: 'Correo Electrónico',
+          password: 'Contraseña',
+          passwordHelp: 'La contraseña debe tener al menos 8 caracteres',
+          buttonText: 'Registrarse',
+          success: '¡Registro exitoso! Por favor verifique su correo electrónico con el token proporcionado.'
+        },
+        login: {
+          title: 'Iniciar Sesión en su Cuenta',
+          description: 'Por favor inicie sesión con su correo electrónico y contraseña. Debe verificar su dirección de correo electrónico antes de iniciar sesión.',
+          email: 'Correo Electrónico',
+          password: 'Contraseña',
+          buttonText: 'Iniciar Sesión',
+          failed: 'Error al iniciar sesión'
+        },
+        verify: {
+          title: 'Verificar su Correo Electrónico',
+          description: 'Ingrese el token de verificación que se proporcionó durante el registro para verificar su dirección de correo electrónico. En una aplicación real, este token se enviaría a su correo electrónico.',
+          token: 'Token de Verificación',
+          buttonText: 'Verificar Correo',
+          success: 'Correo electrónico verificado con éxito. Ahora puede iniciar sesión.',
+          failed: 'Error al verificar el correo electrónico'
+        },
+        protected: {
+          title: 'Probar Punto Final Protegido',
+          endpoint: 'Ruta del Punto Final',
+          buttonText: 'Probar Punto Final Protegido',
+          noToken: 'No hay token de autenticación disponible. Por favor inicie sesión primero.',
+          failed: 'Error en la solicitud al punto final protegido',
+          connectionError: 'Error al conectarse al servidor'
+        },
+        status: {
+          title: 'Estado de Autenticación',
+          userId: 'ID de Usuario',
+          notLoggedIn: 'No ha iniciado sesión',
+          token: 'Token',
+          noToken: 'Sin token'
+        },
+        apiResponse: 'Respuesta de la API'
       }
     }
   }

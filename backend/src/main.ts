@@ -8,7 +8,7 @@ async function bootstrap() {
   
   // Enable CORS for the frontend
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'], // Frontend and admin-dashboard ports
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'], // Frontend and admin-dashboard ports
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -38,10 +38,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = 3001; // Fixed port for backend
+  const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`
-Application is running on: http://localhost:${port}
+Application is running on: ${await app.getUrl()}
 Swagger documentation: http://localhost:${port}/api
 Health check: http://localhost:${port}/health
 API root: http://localhost:${port}/api

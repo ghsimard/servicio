@@ -3,5 +3,5 @@ export declare class ServicesController {
     private readonly servicesService;
     private readonly logger;
     constructor(servicesService: ServicesService);
-    searchServices(query: string, lang?: string): Promise<SearchServicesResponse>;
+    searchServices(mainQuery: string, altQuery: string, lang?: string): Promise<SearchServicesResponse>;
 }

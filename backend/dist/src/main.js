@@ -7,7 +7,7 @@ const swagger_1 = require("@nestjs/swagger");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'],
+        origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
@@ -28,10 +28,10 @@ async function bootstrap() {
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api', app, document);
-    const port = 3001;
+    const port = process.env.PORT || 3001;
     await app.listen(port);
     console.log(`
-Application is running on: http://localhost:${port}
+Application is running on: ${await app.getUrl()}
 Swagger documentation: http://localhost:${port}/api
 Health check: http://localhost:${port}/health
 API root: http://localhost:${port}/api

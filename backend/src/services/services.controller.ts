@@ -11,14 +11,18 @@ export class ServicesController {
 
   @Get('search')
   @ApiOperation({ summary: 'Search services by name with optional language filter' })
-  @ApiQuery({ name: 'q', required: false, description: 'Search query string' })
+  @ApiQuery({ name: 'query', required: false, description: 'Search query string' })
+  @ApiQuery({ name: 'q', required: false, description: 'Alternative search parameter (backward compatibility)' })
   @ApiQuery({ name: 'lang', required: false, description: 'Language code (en, fr, es)', enum: ['en', 'fr', 'es'] })
   @ApiResponse({ status: 200, description: 'List of services matching the search criteria' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async searchServices(
-    @Query('q') query: string,
+    @Query('query') mainQuery: string,
+    @Query('q') altQuery: string,
     @Query('lang') lang: string = 'en'
   ): Promise<SearchServicesResponse> {
+    // Use either query parameter, with mainQuery taking precedence
+    const query = mainQuery || altQuery || '';
     this.logger.log(`Searching services with query: ${query}, language: ${lang}`);
     try {
       const results = await this.servicesService.searchServices(query, lang);

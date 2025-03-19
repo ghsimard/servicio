@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  InputBase,
+  TextField,
   IconButton,
   Dialog,
   DialogTitle,
@@ -13,7 +13,7 @@ import {
   CircularProgress,
   Typography,
   Button,
-  TextField,
+  useTheme,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -29,7 +29,7 @@ interface Service {
   name_es?: string | null;
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3006/api';
 
 // Maximum number of search history items to store
 const MAX_HISTORY_ITEMS = 10;
@@ -37,19 +37,10 @@ const MAX_HISTORY_ITEMS = 10;
 // Local storage key for search history
 const SEARCH_HISTORY_KEY = 'serviceSearchHistory';
 
-const highlightMatch = (text: string, query: string) => {
-  if (!query) return text;
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
-  return parts.map((part, index) => 
-    part.toLowerCase() === query.toLowerCase() ? (
-      <span key={index} style={{ textDecoration: 'underline' }} aria-label={`matched text: ${part}`}>{part}</span>
-    ) : part
-  );
-};
-
 export default function SearchBar() {
   const { t, i18n } = useTranslation();
   const { announceMessage } = useAccessibility();
+  const theme = useTheme();
   const [openAdvanced, setOpenAdvanced] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [services, setServices] = useState<Service[]>([]);
@@ -92,7 +83,7 @@ export default function SearchBar() {
     try {
       setLoading(true);
       const currentLang = i18n.language;
-      const response = await fetch(`${API_BASE_URL}/services/search?q=${encodeURIComponent(query)}&lang=${currentLang}`);
+      const response = await fetch(`${API_BASE_URL}/services/search?query=${encodeURIComponent(query)}&lang=${currentLang}`);
       if (!response.ok) {
         throw new Error('Failed to fetch services');
       }
@@ -212,6 +203,96 @@ export default function SearchBar() {
     ((searchQuery.length >= 3 && services.length > 0) || 
      (searchQuery.length > 0 && searchQuery.length < 3 && searchHistory.length > 0));
 
+  // Common styles for input fields - using theme for consistent styling with enhanced effects
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      transition: theme.transitions.create(['border-color', 'box-shadow', 'transform'], {
+        duration: theme.transitions.duration.shorter
+      }),
+      '& fieldset': { 
+        borderColor: 'rgba(0, 0, 0, 0.23)', 
+        borderWidth: '1px',
+        transition: theme.transitions.create(['border-color', 'border-width'])
+      },
+      '&:hover fieldset': { 
+        borderColor: theme.palette.primary.light 
+      },
+      '&.Mui-focused': {
+        '& fieldset': { 
+          borderColor: theme.palette.primary.main, 
+          borderWidth: '2px' 
+        },
+        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+      },
+      '&.Mui-error fieldset': { 
+        borderColor: theme.palette.error.main 
+      }
+    },
+    '& .MuiInputLabel-root': {
+      transition: theme.transitions.create(['color', 'transform']),
+      '&.Mui-focused': { 
+        color: theme.palette.primary.main,
+        fontWeight: 500
+      }
+    },
+    '& .MuiInputBase-input': {
+      transition: theme.transitions.create('background-color'),
+      '&:focus': {
+        backgroundColor: `${theme.palette.primary.main}05`
+      }
+    }
+  };
+
+  // Common styles for buttons using theme
+  const buttonStyles = {
+    bgcolor: 'white',
+    boxShadow: 3,
+    color: theme.palette.text.primary,
+    textTransform: 'none',
+    fontSize: '0.95rem',
+    p: '10px',
+    minWidth: 0,
+    transition: theme.transitions.create(['background-color', 'box-shadow', 'transform'], {
+      duration: theme.transitions.duration.short
+    }),
+    '&:hover': {
+      bgcolor: theme.palette.grey[100],
+      boxShadow: 4,
+      transform: 'translateY(-1px)'
+    },
+    '&:active': {
+      boxShadow: 2,
+      transform: 'translateY(0)'
+    }
+  };
+
+  const highlightMatch = (text: string, query: string) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, index) => 
+      part.toLowerCase() === query.toLowerCase() ? (
+        <span key={index} style={{ textDecoration: 'underline' }} aria-label={`matched text: ${part}`}>{part}</span>
+      ) : part
+    );
+  };
+
+  // Common styles for search containers
+  const searchContainerStyles = {
+    bgcolor: 'white',
+    borderRadius: 2,
+    boxShadow: 3,
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    transition: theme.transitions.create(['box-shadow', 'transform'], {
+      duration: theme.transitions.duration.short
+    }),
+    '&:focus-within': {
+      boxShadow: 4,
+      transform: 'translateY(-2px)'
+    }
+  };
+
   return (
     <>
       <Box
@@ -239,13 +320,7 @@ export default function SearchBar() {
             width: '100%'
           }}
         >
-          <Box sx={{ 
-            bgcolor: 'white',
-            borderRadius: 2,
-            boxShadow: 3,
-            display: 'flex',
-            alignItems: 'center'
-          }}>
+          <Box sx={searchContainerStyles}>
             <Autocomplete
               sx={{ 
                 flex: 1,
@@ -298,30 +373,30 @@ export default function SearchBar() {
                 return typeof option === 'string' ? option : getLocalizedName(option);
               }}
               renderInput={(params) => (
-                <Box
-                  ref={params.InputProps.ref}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%'
+                <TextField
+                  {...params}
+                  fullWidth
+                  variant="outlined"
+                  placeholder={t('search.service')}
+                  label={t('search.service')}
+                  InputProps={{
+                    ...params.InputProps,
+                    'aria-label': t('search.serviceInput'),
+                    endAdornment: (
+                      <>
+                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
                   }}
-                >
-                  <InputBase
-                    fullWidth
-                    inputProps={{
-                      ...params.inputProps,
-                      'aria-label': t('search.serviceInput'),
-                      placeholder: t('search.service')
-                    }}
-                    endAdornment={
-                      loading ? <CircularProgress color="inherit" size={20} aria-label={t('search.loading')} /> : null
+                  sx={{
+                    ...textFieldStyles,
+                    '& .MuiOutlinedInput-root': {
+                      ...textFieldStyles['& .MuiOutlinedInput-root'],
+                      borderRadius: 2,
                     }
-                    sx={{ 
-                      width: '100%',
-                      '& input': { p: 1.5 }
-                    }}
-                  />
-                </Box>
+                  }}
+                />
               )}
               renderOption={(props, option) => (
                 <li {...props} key={option.service_id} style={{ paddingLeft: '12px' }}>
@@ -386,25 +461,31 @@ export default function SearchBar() {
         </Box>
         <Box sx={{ 
           flex: { xs: 1, sm: 1 },
-          bgcolor: 'white',
-          borderRadius: 2,
-          boxShadow: 3,
+          position: 'relative',
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
           width: '100%'
         }}>
-          <InputBase
-            sx={{ 
-              flex: 1,
-              '& input': { p: 1.5 }
-            }}
-            placeholder={t('search.location')}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            inputProps={{
-              'aria-label': t('search.locationInput')
-            }}
-          />
+          <Box sx={searchContainerStyles}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder={t('search.location')}
+              label={t('search.location')}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              InputProps={{
+                'aria-label': t('search.locationInput')
+              }}
+              sx={{
+                ...textFieldStyles,
+                '& .MuiOutlinedInput-root': {
+                  ...textFieldStyles['& .MuiOutlinedInput-root'],
+                  borderRadius: 2,
+                }
+              }}
+            />
+          </Box>
         </Box>
         <Box sx={{
           display: 'flex',
@@ -417,12 +498,7 @@ export default function SearchBar() {
             type="submit"
             aria-label={t('search.submit')}
             sx={{ 
-              p: '10px',
-              bgcolor: 'white',
-              boxShadow: 3,
-              '&:hover': {
-                bgcolor: 'grey.100'
-              }
+              ...buttonStyles,
             }}
           >
             <SearchIcon />
@@ -431,12 +507,7 @@ export default function SearchBar() {
             onClick={() => setOpenAdvanced(true)}
             aria-label={t('search.openAdvanced')}
             sx={{ 
-              p: '10px',
-              bgcolor: 'white',
-              boxShadow: 3,
-              '&:hover': {
-                bgcolor: 'grey.100'
-              }
+              ...buttonStyles,
             }}
           >
             <TuneIcon />
@@ -449,28 +520,50 @@ export default function SearchBar() {
         onClose={() => setOpenAdvanced(false)} 
         maxWidth="sm" 
         fullWidth
+        closeAfterTransition={false}
         aria-labelledby="advanced-search-dialog"
         PaperProps={{
           sx: {
             borderRadius: 2,
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            bgcolor: 'white'
+            bgcolor: 'white',
+            overflow: 'hidden',
+            transition: theme.transitions.create(['transform', 'opacity']),
+            '& .MuiDialogTitle-root': {
+              px: 4,
+              py: 3,
+              fontSize: '1.5rem',
+              fontWeight: 500,
+              color: theme.palette.text.primary,
+              borderBottom: `1px solid ${theme.palette.divider}`
+            },
+            '& .MuiDialogContent-root': {
+              px: 4, 
+              pt: 3, 
+              pb: 3,
+              bgcolor: 'white'
+            },
+            '& .MuiDialogActions-root': {
+              px: 4,
+              py: 3,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              bgcolor: 'white'
+            }
+          }
+        }}
+        TransitionProps={{
+          timeout: {
+            enter: theme.transitions.duration.enteringScreen,
+            exit: theme.transitions.duration.leavingScreen
           }
         }}
       >
         <DialogTitle 
           id="advanced-search-dialog"
-          sx={{ 
-            px: 4,
-            py: 3,
-            fontSize: '1.5rem',
-            fontWeight: 500,
-            color: '#1a1a1a'
-          }}
         >
           {t('search.advancedSearch')}
         </DialogTitle>
-        <DialogContent sx={{ px: 4, pt: 6, pb: 5, bgcolor: 'white' }}>
+        <DialogContent>
           <Box role="form" aria-label={t('search.advancedSearchForm')}>
             <Grid container spacing={3}>
               {[
@@ -512,10 +605,10 @@ export default function SearchBar() {
                           fullWidth
                           variant="outlined"
                           placeholder={field.label}
+                          label={field.label}
                           InputProps={{
                             ...params.InputProps,
                             'aria-label': field.label,
-                            notched: false,
                             endAdornment: (
                               <>
                                 {loading ? <CircularProgress color="inherit" size={20} /> : null}
@@ -523,24 +616,7 @@ export default function SearchBar() {
                               </>
                             ),
                           }}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              '& fieldset': {
-                                top: 0,
-                                border: '1px solid rgba(0,0,0,0.23) !important',
-                                '& legend': {
-                                  display: 'none'
-                                }
-                              },
-                              '&:hover fieldset': {
-                                border: '1px solid rgba(0,0,0,0.87) !important'
-                              },
-                              '&.Mui-focused fieldset': {
-                                border: '2px solid !important',
-                                borderColor: 'primary.main !important'
-                              }
-                            }
-                          }}
+                          sx={textFieldStyles}
                         />
                       )}
                     />
@@ -549,33 +625,16 @@ export default function SearchBar() {
                       fullWidth
                       variant="outlined"
                       placeholder={field.label}
+                      label={field.label}
                       value={advancedSearch[field.name as keyof typeof advancedSearch]}
                       onChange={(e) => setAdvancedSearch({ 
                         ...advancedSearch, 
                         [field.name]: e.target.value 
                       })}
                       InputProps={{
-                        notched: false,
                         'aria-label': field.label
                       }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            top: 0,
-                            border: '1px solid rgba(0,0,0,0.23) !important',
-                            '& legend': {
-                              display: 'none'
-                            }
-                          },
-                          '&:hover fieldset': {
-                            border: '1px solid rgba(0,0,0,0.87) !important'
-                          },
-                          '&.Mui-focused fieldset': {
-                            border: '2px solid !important',
-                            borderColor: 'primary.main !important'
-                          }
-                        }
-                      }}
+                      sx={textFieldStyles}
                     />
                   )}
                 </Grid>
@@ -585,13 +644,9 @@ export default function SearchBar() {
         </DialogContent>
         <DialogActions 
           sx={{ 
-            px: 4,
-            py: 3,
-            borderTop: '1px solid rgba(0,0,0,0.08)',
             gap: 2,
             display: 'flex',
             alignItems: 'center',
-            bgcolor: 'white'
           }}
         >
           <Button 
@@ -599,16 +654,7 @@ export default function SearchBar() {
             startIcon={<ClearIcon />}
             aria-label={t('search.clearForm')}
             sx={{
-              bgcolor: 'white',
-              boxShadow: 3,
-              color: 'text.primary',
-              textTransform: 'none',
-              fontSize: '0.95rem',
-              p: '10px',
-              minWidth: 0,
-              '&:hover': {
-                bgcolor: 'grey.100'
-              }
+              ...buttonStyles,
             }}
           >
             {t('common.clear')}
@@ -618,16 +664,7 @@ export default function SearchBar() {
             onClick={() => setOpenAdvanced(false)}
             aria-label={t('common.close')}
             sx={{
-              bgcolor: 'white',
-              boxShadow: 3,
-              color: 'text.primary',
-              textTransform: 'none',
-              fontSize: '0.95rem',
-              p: '10px',
-              minWidth: 0,
-              '&:hover': {
-                bgcolor: 'grey.100'
-              }
+              ...buttonStyles,
             }}
           >
             {t('common.close')}
@@ -637,16 +674,7 @@ export default function SearchBar() {
             startIcon={<SearchIcon />}
             aria-label={t('search.performAdvancedSearch')}
             sx={{
-              bgcolor: 'white',
-              boxShadow: 3,
-              color: 'text.primary',
-              textTransform: 'none',
-              fontSize: '0.95rem',
-              p: '10px',
-              minWidth: 0,
-              '&:hover': {
-                bgcolor: 'grey.100'
-              }
+              ...buttonStyles,
             }}
           >
             {t('search.search')}
