@@ -1,9 +1,9 @@
-import { ThemeProvider } from '@mui/material/styles';
 import { Box, AppBar, Toolbar, Container, Typography, Button, Avatar, IconButton, Menu, MenuItem } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import theme from './theme';
+import ThemeProvider from './theme/ThemeProvider';
 import SearchBar from './components/SearchBar';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { AccessibilityProvider } from './contexts/AccessibilityContext';
@@ -261,7 +261,7 @@ function AppContent() {
                     role="heading"
                     aria-level={1}
                   >
-                    SERVICIO
+                    Service Finder
                   </Typography>
                   <Typography 
                     variant="h2" 
@@ -315,7 +315,7 @@ function AppContent() {
 function App() {
   return (
     <AccessibilityProvider>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider>
         <AuthProvider>
           <AppContent />
         </AuthProvider>
