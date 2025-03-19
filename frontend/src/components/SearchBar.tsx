@@ -20,6 +20,7 @@ import TuneIcon from '@mui/icons-material/Tune';
 import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
 import { useAccessibility } from '../contexts/AccessibilityContext';
+import LocationInput from './LocationInput';
 
 // Temporary interface to handle both old and new API formats
 interface Service {
@@ -311,17 +312,19 @@ export default function SearchBar() {
           px: { xs: 2, sm: 3 }
         }}
       >
-        <Box 
-          sx={{ 
-            flex: { xs: 1, sm: 1 },
+        <Box
+          sx={{
+            flex: { xs: 1, sm: 0.45 }, // Equal flex for both inputs
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
-            width: '100%'
+            width: { xs: '100%', sm: '45%' }, // Equal width for both inputs
+            minWidth: { xs: '100%', sm: '250px' },
           }}
         >
           <Box sx={searchContainerStyles}>
             <Autocomplete
+              id="service-search"
               sx={{ 
                 flex: 1,
                 '& .MuiAutocomplete-popper': {
@@ -460,23 +463,21 @@ export default function SearchBar() {
           </Box>
         </Box>
         <Box sx={{ 
-          flex: { xs: 1, sm: 1 },
+          flex: { xs: 1, sm: 0.45 }, // Equal flex for both inputs
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          width: '100%'
+          width: { xs: '100%', sm: '45%' }, // Equal width for both inputs
+          minWidth: { xs: '100%', sm: '250px' },
         }}>
           <Box sx={searchContainerStyles}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder={t('search.location')}
-              label={t('search.location')}
+            <LocationInput
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              InputProps={{
-                'aria-label': t('search.locationInput')
-              }}
+              onChange={setLocation}
+              label={t('search.location')}
+              placeholder={t('search.location')}
+              fullWidth
+              width="100%"
               sx={{
                 ...textFieldStyles,
                 '& .MuiOutlinedInput-root': {
@@ -568,7 +569,7 @@ export default function SearchBar() {
             <Grid container spacing={3}>
               {[
                 { name: 'service', label: t('search.service'), type: 'autocomplete' },
-                { name: 'location', label: t('search.location'), type: 'text' },
+                { name: 'location', label: t('search.location'), type: 'location' },
                 { name: 'priceRange', label: t('search.priceRange'), type: 'text' },
                 { name: 'availability', label: t('search.availability'), type: 'text' }
               ].map((field) => (
@@ -619,6 +620,19 @@ export default function SearchBar() {
                           sx={textFieldStyles}
                         />
                       )}
+                    />
+                  ) : field.type === 'location' ? (
+                    <LocationInput
+                      value={advancedSearch[field.name as keyof typeof advancedSearch] as string}
+                      onChange={(value) => setAdvancedSearch({
+                        ...advancedSearch,
+                        [field.name]: value
+                      })}
+                      label={field.label}
+                      placeholder={field.label}
+                      fullWidth
+                      width="100%"
+                      sx={textFieldStyles}
                     />
                   ) : (
                     <TextField

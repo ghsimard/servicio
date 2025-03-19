@@ -47,6 +47,7 @@ export const layoutComponents = (theme: Theme) => ({
       root: {
         boxShadow: 'none',
         borderBottom: `1px solid ${theme.palette.divider}`,
+        borderRadius: 0,
       },
       colorDefault: {
         backgroundColor: theme.palette.background.paper,
