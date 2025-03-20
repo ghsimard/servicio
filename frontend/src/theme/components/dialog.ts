@@ -9,10 +9,11 @@ export const dialogComponents = (theme: Theme) => ({
     styleOverrides: {
       paper: {
         borderRadius: 16,
-        boxShadow: '0px 20px 40px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0px 20px 40px rgba(255, 107, 0, 0.15)',
         margin: theme.spacing(2),
         maxWidth: `calc(100% - ${theme.spacing(4)})`,
         overflow: 'visible', // Changed from 'hidden' to allow dropdowns to overflow
+        backgroundColor: theme.palette.background.paper,
       },
       paperWidthXs: {
         maxWidth: theme.breakpoints.values.xs,
@@ -50,7 +51,7 @@ export const dialogComponents = (theme: Theme) => ({
         backgroundColor: theme.palette.background.paper,
         position: 'relative',
         zIndex: 1,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        boxShadow: '0 2px 4px rgba(255, 107, 0, 0.05)',
       },
     },
   },
@@ -58,6 +59,7 @@ export const dialogComponents = (theme: Theme) => ({
     styleOverrides: {
       root: {
         padding: theme.spacing(3),
+        backgroundColor: theme.palette.background.paper,
         '& .MuiGrid-container': {
           marginTop: theme.spacing(1),
         },

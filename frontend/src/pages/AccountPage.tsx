@@ -12,7 +12,8 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton
+  IconButton,
+  Dialog
 } from '@mui/material';
 import { Person, Email, Badge, ArrowBack, Close } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,92 +44,107 @@ const AccountPage: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton 
-          onClick={() => navigate('/')}
-          sx={{ mr: 2 }}
-          aria-label="Back to home"
-        >
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h5">Back to Home</Typography>
-      </Box>
-
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
-          <Avatar 
-            sx={{ 
-              width: 100, 
-              height: 100, 
-              bgcolor: 'secondary.main',
-              fontSize: '2.5rem',
-              mb: 2
-            }}
+    <Dialog
+      open={true}
+      onClose={() => navigate('/')}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          bgcolor: 'white',
+          overflow: 'hidden',
+        }
+      }}
+    >
+      <Container sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <IconButton 
+            onClick={() => navigate('/')}
+            sx={{ mr: 2 }}
+            aria-label="Back to home"
           >
-            {user.username.substring(0, 1).toUpperCase()}
-          </Avatar>
-          <Typography variant="h4" gutterBottom>
-            {user.username}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            User ID: {user.user_id}
-          </Typography>
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h5">Back to Home</Typography>
         </Box>
 
-        <Divider sx={{ my: 3 }} />
-        
-        <Typography variant="h6" gutterBottom sx={{ ml: 2 }}>
-          Account Information
-        </Typography>
-        
-        <List>
-          <ListItem>
-            <ListItemIcon>
-              <Person />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Username" 
-              secondary={user.username} 
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <Email />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Email" 
-              secondary={user.email} 
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <Badge />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Account ID" 
-              secondary={user.user_id}
-            />
-          </ListItem>
-        </List>
-        
-        <Divider sx={{ my: 3 }} />
-        
-        <Grid container justifyContent="center">
-          <Grid item>
-            <Button 
-              variant="contained" 
-              color="error"
-              onClick={() => navigate('/')}
-              startIcon={<Close />}
-              sx={{ px: 4 }}
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+            <Avatar 
+              sx={{ 
+                width: 100, 
+                height: 100, 
+                bgcolor: 'secondary.main',
+                fontSize: '2.5rem',
+                mb: 2
+              }}
             >
-              Close
-            </Button>
+              {user.username.substring(0, 1).toUpperCase()}
+            </Avatar>
+            <Typography variant="h4" gutterBottom>
+              {user.username}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              User ID: {user.user_id}
+            </Typography>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+          
+          <Typography variant="h6" gutterBottom sx={{ ml: 2 }}>
+            Account Information
+          </Typography>
+          
+          <List>
+            <ListItem>
+              <ListItemIcon>
+                <Person />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Username" 
+                secondary={user.username} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <Email />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Email" 
+                secondary={user.email} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <Badge />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Account ID" 
+                secondary={user.user_id}
+              />
+            </ListItem>
+          </List>
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Grid container justifyContent="center">
+            <Grid item>
+              <Button 
+                variant="contained" 
+                color="error"
+                onClick={() => navigate('/')}
+                startIcon={<Close />}
+                sx={{ px: 4 }}
+              >
+                Close
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
-    </Container>
+        </Paper>
+      </Container>
+    </Dialog>
   );
 };
 
