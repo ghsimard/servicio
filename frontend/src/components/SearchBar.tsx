@@ -21,6 +21,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 import LocationInput from './LocationInput';
+import { API_BASE_URL } from '../config';
 
 // Temporary interface to handle both old and new API formats
 interface Service {
@@ -29,8 +30,6 @@ interface Service {
   name_fr?: string | null;
   name_es?: string | null;
 }
-
-const API_BASE_URL = 'http://localhost:3006/api';
 
 // Maximum number of search history items to store
 const MAX_HISTORY_ITEMS = 10;

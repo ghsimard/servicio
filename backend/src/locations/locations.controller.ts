@@ -2,6 +2,7 @@ import { Controller, Get, Query, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 interface GooglePrediction {
   description: string;
@@ -43,7 +44,7 @@ export class LocationsController {
     
     try {
       this.logger.log(`Making request to Google Places API for: "${input}"`);
-      const { data } = await firstValueFrom(
+      const response = await firstValueFrom(
         this.httpService.get<GooglePlacesResponse>(
           'https://maps.googleapis.com/maps/api/place/autocomplete/json',
           {
@@ -58,6 +59,7 @@ export class LocationsController {
           }
         )
       );
+      const data = response.data;
 
       // Check for API errors
       if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {

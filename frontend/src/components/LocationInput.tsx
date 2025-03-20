@@ -3,7 +3,7 @@ import { TextField, Autocomplete, CircularProgress, Alert } from '@mui/material'
 import { useTranslation } from 'react-i18next';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 
-const API_BASE_URL = 'http://localhost:3006/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 interface ApiPrediction {
   description?: string;

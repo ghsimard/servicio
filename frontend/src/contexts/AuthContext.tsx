@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   // Configure axios to use the backend API URL
-  axios.defaults.baseURL = 'http://localhost:3006';
+  axios.defaults.baseURL = 'http://localhost:3001';
 
   useEffect(() => {
     const verifyToken = async () => {
