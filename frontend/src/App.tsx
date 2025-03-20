@@ -261,7 +261,7 @@ function AppContent() {
                     role="heading"
                     aria-level={1}
                   >
-                    Service Finder
+                    {t('app.title')}
                   </Typography>
                   <Typography 
                     variant="h2" 

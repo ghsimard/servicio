@@ -51,7 +51,7 @@ export default function SearchBar() {
   
   const [advancedSearch, setAdvancedSearch] = useState({
     service: null as Service | null,
-    location: '',
+    location: location,
     priceRange: '',
     availability: '',
   });
@@ -78,6 +78,14 @@ export default function SearchBar() {
       announceMessage(t('search.noResults'));
     }
   }, [loading, services, searchQuery, announceMessage, t]);
+
+  // Add effect to sync location values
+  useEffect(() => {
+    setAdvancedSearch(prev => ({
+      ...prev,
+      location: location
+    }));
+  }, [location]);
 
   const fetchServices = async (query: string) => {
     try {
@@ -135,6 +143,7 @@ export default function SearchBar() {
       availability: '',
     });
     setSearchQuery('');
+    setLocation('');
     setServices([]);
     announceMessage(t('search.cleared'));
   };
@@ -472,7 +481,13 @@ export default function SearchBar() {
           <Box sx={searchContainerStyles}>
             <LocationInput
               value={location}
-              onChange={setLocation}
+              onChange={(newValue) => {
+                setLocation(newValue);
+                setAdvancedSearch(prev => ({
+                  ...prev,
+                  location: newValue
+                }));
+              }}
               label={t('search.location')}
               placeholder={t('search.location')}
               fullWidth
@@ -622,11 +637,14 @@ export default function SearchBar() {
                     />
                   ) : field.type === 'location' ? (
                     <LocationInput
-                      value={advancedSearch[field.name as keyof typeof advancedSearch] as string}
-                      onChange={(value) => setAdvancedSearch({
-                        ...advancedSearch,
-                        [field.name]: value
-                      })}
+                      value={advancedSearch.location}
+                      onChange={(newValue) => {
+                        setLocation(newValue);
+                        setAdvancedSearch(prev => ({
+                          ...prev,
+                          location: newValue
+                        }));
+                      }}
                       label={field.label}
                       placeholder={field.label}
                       fullWidth
