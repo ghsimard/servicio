@@ -12,10 +12,9 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton,
   Dialog
 } from '@mui/material';
-import { Person, Email, Badge, ArrowBack, Close } from '@mui/icons-material';
+import { Person, Email, Badge, Close } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -49,27 +48,38 @@ const AccountPage: React.FC = () => {
       onClose={() => navigate('/')}
       maxWidth="md"
       fullWidth
+      scroll="paper"
       PaperProps={{
         sx: {
           borderRadius: 2,
           boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           bgcolor: 'white',
           overflow: 'hidden',
+          maxHeight: '90vh',
+          m: 2,
+          mt: 10,
         }
       }}
     >
-      <Container sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <IconButton 
-            onClick={() => navigate('/')}
-            sx={{ mr: 2 }}
-            aria-label="Back to home"
-          >
-            <ArrowBack />
-          </IconButton>
-          <Typography variant="h5">Back to Home</Typography>
-        </Box>
-
+      <Container sx={{ 
+        py: 4,
+        height: '100%',
+        overflow: 'auto',
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+          borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#888',
+          borderRadius: '4px',
+          '&:hover': {
+            background: '#666',
+          },
+        },
+      }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
             <Avatar 

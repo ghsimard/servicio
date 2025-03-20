@@ -202,6 +202,9 @@ function AppContent() {
               <AccountPage />
             </ProtectedRoute>
           } />
+          <Route path="/account" element={
+            <Navigate to="/account" replace />
+          } />
           <Route path="/profile" element={
             <Navigate to="/account" replace />
           } />

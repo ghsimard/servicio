@@ -544,6 +544,7 @@ export default function SearchBar() {
             bgcolor: 'white',
             overflow: 'hidden',
             transition: theme.transitions.create(['transform', 'opacity']),
+            mt: 10,
             '& .MuiDialogTitle-root': {
               px: 4,
               py: 3,
