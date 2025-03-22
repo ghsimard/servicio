@@ -49,6 +49,8 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<RegisterResponse>;
   logout: () => void;
   verifyEmail: (token: string) => Promise<VerifyEmailResponse>;
+  requestPasswordReset: (email: string) => Promise<{ message: string; resetToken?: string }>;
+  resetPassword: (token: string, newPassword: string) => Promise<{ message: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -176,6 +178,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(false);
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post('/api/auth/forgot-password', { email });
+      return response.data;
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiErrorResponse>;
+      setError(error.response?.data?.message || 'Failed to request password reset');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.post('/api/auth/reset-password', { token, newPassword });
+      return response.data;
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiErrorResponse>;
+      setError(error.response?.data?.message || 'Failed to reset password');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -187,7 +219,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
-        verifyEmail
+        verifyEmail,
+        requestPasswordReset,
+        resetPassword
       }}
     >
       {children}

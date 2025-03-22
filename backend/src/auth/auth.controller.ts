@@ -161,4 +161,49 @@ export class AuthController {
     
     return this.authService.verifyEmail(token);
   }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Password reset instructions sent',
+    schema: {
+      example: {
+        message: 'Password reset instructions have been sent to your email'
+      }
+    }
+  })
+  async forgotPassword(@Body('email') email: string) {
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+    return this.authService.requestPasswordReset(email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using token' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Password reset successful',
+    schema: {
+      example: {
+        message: 'Password has been reset successfully'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or expired reset token' })
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    if (!token || !newPassword) {
+      throw new BadRequestException('Token and new password are required');
+    }
+    
+    if (newPassword.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters long');
+    }
+    
+    return this.authService.resetPassword(token, newPassword);
+  }
 } 

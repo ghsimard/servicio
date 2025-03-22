@@ -12,7 +12,8 @@ import {
   Tab,
   CircularProgress,
   Paper,
-  Alert
+  Alert,
+  Container
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +52,7 @@ function a11yProps(index: number) {
 }
 
 // Update API URL to include port explicitly
-const API_URL = 'http://localhost:3005/api';
+const API_URL = 'http://localhost:3001/api';
 
 // Common styles for input fields
 const textFieldStyles = {
@@ -72,7 +73,7 @@ const AuthTestPage: React.FC = () => {
   const navigate = useNavigate();
   
   // Use auth context instead of local state
-  const { login, register, verifyEmail, token, user, loading, error: authError } = useAuth();
+  const { login, register, verifyEmail, token, user, loading, error: authError, requestPasswordReset, resetPassword } = useAuth();
 
   // Set default tab to 0 (Register) if not otherwise specified
   const [tabValue, setTabValue] = useState(0);
@@ -96,6 +97,11 @@ const AuthTestPage: React.FC = () => {
   // Protected endpoint test state
   const [protectedEndpointUrl, setProtectedEndpointUrl] = useState('/api/dashboard/profile');
 
+  // Password reset state
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
   // Update error state when authError changes
   useEffect(() => {
     if (authError) {
@@ -110,7 +116,7 @@ const AuthTestPage: React.FC = () => {
     
     if (tabParam) {
       const tabIndex = parseInt(tabParam, 10);
-      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 4) {
         setTabValue(tabIndex);
       }
     }
@@ -228,20 +234,59 @@ const AuthTestPage: React.FC = () => {
     }
   };
 
+  const handleRequestPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setApiResponse(null);
+    
+    try {
+      const result = await requestPasswordReset(resetEmail);
+      setApiResponse({
+        message: t('auth.forgotPassword.success'),
+        resetToken: result.resetToken
+      });
+      
+      // If we received a reset token, automatically set it for the reset password tab
+      if (result.resetToken) {
+        setResetToken(result.resetToken);
+        // Switch to the reset password tab
+        setTabValue(4);
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t('auth.forgotPassword.failed');
+      setError(errorMessage);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setApiResponse(null);
+    
+    try {
+      const result = await resetPassword(resetToken, newPassword);
+      setApiResponse({
+        message: t('auth.resetPassword.success')
+      });
+      
+      // Show success message briefly, then redirect to login tab
+      setTimeout(() => {
+        navigate('/auth-test?tab=1'); // Navigate to login tab
+      }, 1500);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t('auth.resetPassword.failed');
+      setError(errorMessage);
+    }
+  };
+
   return (
-    <Box sx={{ 
-      maxWidth: 600, 
-      margin: '0 auto', 
-      mt: 4, 
-      p: 2,
-      boxShadow: 2,
-      borderRadius: 2,
-      bgcolor: 'background.paper',
-    }}>
+    <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom align="center">
         {tabValue === 0 ? t('auth.register.title', 'Registration') : 
          tabValue === 1 ? t('auth.login.title', 'Sign In') : 
-         t('auth.pageTitle', 'Authentication')}
+         tabValue === 2 ? t('auth.verify.title') :
+         tabValue === 3 ? t('auth.forgotPassword.title') :
+         t('auth.resetPassword.title')}
       </Typography>
       
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -270,9 +315,14 @@ const AuthTestPage: React.FC = () => {
             sx={{ fontWeight: tabValue === 2 ? 'bold' : 'normal' }}
           />
           <Tab 
-            label={t('common.test')} 
+            label={t('auth.forgotPassword.title')} 
             {...a11yProps(3)} 
             sx={{ fontWeight: tabValue === 3 ? 'bold' : 'normal' }}
+          />
+          <Tab 
+            label={t('auth.resetPassword.title')} 
+            {...a11yProps(4)} 
+            sx={{ fontWeight: tabValue === 4 ? 'bold' : 'normal' }}
           />
         </Tabs>
       </Box>
@@ -504,49 +554,105 @@ const AuthTestPage: React.FC = () => {
       </TabPanel>
       
       <TabPanel value={tabValue} index={3}>
-        <Card>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              {t('auth.protected.title')}
-            </Typography>
-            <form onSubmit={testProtectedEndpoint}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label={t('auth.protected.endpoint')}
-                    value={protectedEndpointUrl}
-                    onChange={(e) => setProtectedEndpointUrl(e.target.value)}
-                    variant="outlined"
-                    required
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    size="large"
-                    sx={{ 
-                      mt: 2, 
-                      py: 1,
-                      fontSize: '1rem',
-                      fontWeight: 'bold'
-                    }}
-                    disabled={loading || !token}
-                    startIcon={loading ? <CircularProgress size={20} /> : null}
-                  >
-                    {loading ? <CircularProgress size={24} /> : t('auth.protected.buttonText')}
-                  </Button>
-                </Grid>
-              </Grid>
-            </form>
-          </CardContent>
-        </Card>
+        <Typography variant="h6" gutterBottom>
+          {t('auth.forgotPassword.title')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
+          {t('auth.forgotPassword.description')}
+        </Typography>
+        <form onSubmit={handleRequestPasswordReset}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label={t('auth.forgotPassword.email')}
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                required
+                variant="outlined"
+                sx={textFieldStyles}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary"
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+                fullWidth
+                size="large"
+                sx={{ 
+                  mt: 2, 
+                  py: 1,
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                {t('auth.forgotPassword.buttonText')}
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
       </TabPanel>
-    </Box>
+      
+      <TabPanel value={tabValue} index={4}>
+        <Typography variant="h6" gutterBottom>
+          {t('auth.resetPassword.title')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
+          {t('auth.resetPassword.description')}
+        </Typography>
+        <form onSubmit={handleResetPassword}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label={t('auth.resetPassword.token')}
+                value={resetToken}
+                onChange={(e) => setResetToken(e.target.value)}
+                required
+                variant="outlined"
+                sx={textFieldStyles}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label={t('auth.resetPassword.newPassword')}
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                variant="outlined"
+                helperText={t('auth.resetPassword.passwordRequirements')}
+                sx={textFieldStyles}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary"
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+                fullWidth
+                size="large"
+                sx={{ 
+                  mt: 2, 
+                  py: 1,
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                {t('auth.resetPassword.buttonText')}
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </TabPanel>
+    </Container>
   );
 };
 

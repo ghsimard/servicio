@@ -248,4 +248,87 @@ export class AuthService {
       },
     };
   }
+
+  async requestPasswordReset(email: string) {
+    this.logger.log(`Password reset requested for email: ${email}`);
+
+    const user = await this.prisma.users.findUnique({
+      where: { email },
+      select: {
+        user_id: true,
+        email: true,
+      },
+    });
+
+    if (!user) {
+      // For security reasons, we still return success even if the email doesn't exist
+      return {
+        message: 'If the email exists, a password reset link will be sent.',
+      };
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    
+    // Set token to expire in 1 hour
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+    
+    // Store reset token
+    await this.prisma.password_reset_tokens.create({
+      data: {
+        user_id: user.user_id,
+        token: resetToken,
+        expires_at: expiresAt,
+      },
+    });
+
+    // In production, send this via email instead of returning it
+    return {
+      message: 'Password reset instructions have been sent to your email.',
+      resetToken, // Remove this in production
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    this.logger.log('Processing password reset request');
+
+    const resetToken = await this.prisma.password_reset_tokens.findFirst({
+      where: {
+        token,
+        used: false,
+        expires_at: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        users: true,
+      },
+    });
+
+    if (!resetToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password and mark token as used in a transaction
+    await this.prisma.$transaction([
+      // Update password
+      this.prisma.users.update({
+        where: { user_id: resetToken.user_id },
+        data: { password_hash: hashedPassword },
+      }),
+      // Mark token as used
+      this.prisma.password_reset_tokens.update({
+        where: { token_id: resetToken.token_id },
+        data: { used: true },
+      }),
+    ]);
+
+    return {
+      message: 'Password has been reset successfully. You can now log in with your new password.',
+    };
+  }
 } 

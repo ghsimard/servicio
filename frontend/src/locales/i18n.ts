@@ -90,6 +90,24 @@ const resources = {
           success: 'Email verified successfully. You can now log in.',
           failed: 'Email verification failed'
         },
+        forgotPassword: {
+          title: 'Reset Your Password',
+          description: 'Enter your email address and we will send you instructions to reset your password.',
+          email: 'Email',
+          buttonText: 'Request Password Reset',
+          success: 'Password reset instructions have been sent to your email.',
+          failed: 'Failed to request password reset'
+        },
+        resetPassword: {
+          title: 'Set New Password',
+          description: 'Enter your reset token and choose a new password.',
+          token: 'Reset Token',
+          newPassword: 'New Password',
+          buttonText: 'Reset Password',
+          success: 'Password has been reset successfully. You can now log in.',
+          failed: 'Failed to reset password',
+          passwordRequirements: 'Password must be at least 8 characters long'
+        },
         protected: {
           title: 'Test Protected Endpoint',
           endpoint: 'Endpoint Path',
@@ -219,6 +237,24 @@ const resources = {
           success: 'Email vérifié avec succès. Vous pouvez maintenant vous connecter.',
           failed: 'Échec de la vérification de l\'email'
         },
+        forgotPassword: {
+          title: 'Réinitialiser Votre Mot de Passe',
+          description: 'Entrez votre adresse email et nous vous enverrons les instructions pour réinitialiser votre mot de passe.',
+          email: 'Email',
+          buttonText: 'Demander la Réinitialisation du Mot de Passe',
+          success: 'Les instructions pour réinitialiser votre mot de passe ont été envoyées à votre email.',
+          failed: 'Échec de la demande de réinitialisation du mot de passe'
+        },
+        resetPassword: {
+          title: 'Définir un Nouveau Mot de Passe',
+          description: 'Entrez le jeton de réinitialisation et choisissez un nouveau mot de passe.',
+          token: 'Jeton de Réinitialisation',
+          newPassword: 'Nouveau Mot de Passe',
+          buttonText: 'Réinitialiser le Mot de Passe',
+          success: 'Le mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.',
+          failed: 'Échec de la réinitialisation du mot de passe',
+          passwordRequirements: 'Le mot de passe doit comporter au moins 8 caractères'
+        },
         protected: {
           title: 'Tester un Point de Terminaison Protégé',
           endpoint: 'Chemin du Point de Terminaison',
@@ -347,6 +383,24 @@ const resources = {
           buttonText: 'Verificar Correo',
           success: 'Correo electrónico verificado con éxito. Ahora puede iniciar sesión.',
           failed: 'Error al verificar el correo electrónico'
+        },
+        forgotPassword: {
+          title: 'Restablecer su Contraseña',
+          description: 'Ingrese su dirección de correo electrónico y le enviaremos instrucciones para restablecer su contraseña.',
+          email: 'Correo Electrónico',
+          buttonText: 'Solicitar Restablecimiento de Contraseña',
+          success: 'Se han enviado instrucciones para restablecer su contraseña a su correo electrónico.',
+          failed: 'Error al solicitar restablecimiento de contraseña'
+        },
+        resetPassword: {
+          title: 'Establecer Nueva Contraseña',
+          description: 'Ingrese el token de restablecimiento y elija una nueva contraseña.',
+          token: 'Token de Restablecimiento',
+          newPassword: 'Nueva Contraseña',
+          buttonText: 'Restablecer Contraseña',
+          success: 'Contraseña restablecida exitosamente. Ahora puede iniciar sesión.',
+          failed: 'Error al restablecer la contraseña',
+          passwordRequirements: 'La contraseña debe tener al menos 8 caracteres'
         },
         protected: {
           title: 'Probar Punto Final Protegido',
