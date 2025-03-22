@@ -106,6 +106,28 @@ const resources = {
           noToken: 'No token'
         },
         apiResponse: 'API Response'
+      },
+      location: {
+        placeholder: 'Enter a location',
+        noOptions: 'No locations found',
+        loading: 'Loading locations...',
+        error: 'Error fetching location suggestions',
+        selected: 'Selected location: {{location}}',
+        apiError: 'API Error: {{message}}',
+        suggestionsFound: 'Found {{count}} location suggestions',
+        noSuggestions: 'No location suggestions found',
+        useGps: 'Use my location',
+        gpsNotSupported: 'GPS is not supported by your browser',
+        gpsError: 'Could not get your location. Please check your GPS permissions.',
+        gpsAddressError: 'Could not get address from your location. Please try again or enter your location manually.',
+        gpsSuccess: 'Location found: {{address}}',
+        gpsPermissionDenied: 'Location permission was denied. Please enable location access in your browser settings.',
+        gpsUnavailable: 'Could not determine your location. Please ensure you have a clear view of the sky or try again in a different location.',
+        gpsTimeout: 'Location request timed out. Please check your GPS signal and try again.',
+        gpsInaccurate: 'Could not get an accurate location. Please try again in a more open area.',
+        retrying: 'Location unavailable, retrying... (Attempt {{attempt}} of {{total}})',
+        macOSLocationUnknown: 'Could not determine your location. Try moving to a location with better GPS signal or enable Wi-Fi for better accuracy.',
+        macOSHint: 'Try moving to a location with better GPS signal'
       }
     }
   },
@@ -213,6 +235,28 @@ const resources = {
           noToken: 'Pas de jeton'
         },
         apiResponse: 'Réponse API'
+      },
+      location: {
+        placeholder: 'Entrez un lieu',
+        noOptions: 'Aucun lieu trouvé',
+        loading: 'Chargement des lieux...',
+        error: 'Erreur lors de la recherche de suggestions',
+        selected: 'Lieu sélectionné : {{location}}',
+        apiError: 'Erreur API : {{message}}',
+        suggestionsFound: '{{count}} suggestions de lieux trouvées',
+        noSuggestions: 'Aucune suggestion de lieu trouvée',
+        useGps: 'Utiliser ma position',
+        gpsNotSupported: 'Le GPS n\'est pas pris en charge par votre navigateur',
+        gpsError: 'Impossible d\'obtenir votre position. Veuillez vérifier vos autorisations GPS.',
+        gpsAddressError: 'Impossible d\'obtenir l\'adresse de votre position. Veuillez réessayer ou saisir votre lieu manuellement.',
+        gpsSuccess: 'Lieu trouvé : {{address}}',
+        gpsPermissionDenied: 'L\'accès à la localisation a été refusé. Veuillez activer l\'accès à la localisation dans les paramètres de votre navigateur.',
+        gpsUnavailable: 'Impossible de déterminer votre position. Assurez-vous d\'avoir une vue dégagée du ciel ou réessayez dans un autre endroit.',
+        gpsTimeout: 'Délai d\'attente dépassé. Veuillez vérifier votre signal GPS et réessayer.',
+        gpsInaccurate: 'Position imprécise. Veuillez réessayer dans un endroit plus dégagé.',
+        retrying: 'Position indisponible, nouvelle tentative... (Essai {{attempt}} sur {{total}})',
+        macOSLocationUnknown: 'Impossible de déterminer votre position. Essayez de vous déplacer vers un endroit avec un meilleur signal GPS ou activez le Wi-Fi pour plus de précision.',
+        macOSHint: 'Essayez de vous déplacer vers un endroit avec un meilleur signal GPS'
       }
     }
   },
@@ -320,6 +364,28 @@ const resources = {
           noToken: 'Sin token'
         },
         apiResponse: 'Respuesta de la API'
+      },
+      location: {
+        placeholder: 'Ingrese una ubicación',
+        noOptions: 'No se encontraron ubicaciones',
+        loading: 'Cargando ubicaciones...',
+        error: 'Error al buscar sugerencias',
+        selected: 'Ubicación seleccionada: {{location}}',
+        apiError: 'Error de API: {{message}}',
+        suggestionsFound: 'Se encontraron {{count}} sugerencias de ubicación',
+        noSuggestions: 'No se encontraron sugerencias de ubicación',
+        useGps: 'Usar mi ubicación',
+        gpsNotSupported: 'El GPS no es compatible con su navegador',
+        gpsError: 'No se pudo obtener su ubicación. Por favor verifique sus permisos de GPS.',
+        gpsAddressError: 'No se pudo obtener la dirección de su ubicación. Por favor intente de nuevo o ingrese su ubicación manualmente.',
+        gpsSuccess: 'Ubicación encontrada: {{address}}',
+        gpsPermissionDenied: 'Se denegó el permiso de ubicación. Por favor habilite el acceso a la ubicación en la configuración de su navegador.',
+        gpsUnavailable: 'No se pudo determinar su ubicación. Asegúrese de tener una vista clara del cielo o intente en una ubicación diferente.',
+        gpsTimeout: 'Se agotó el tiempo de espera. Por favor verifique su señal GPS e intente de nuevo.',
+        gpsInaccurate: 'No se pudo obtener una ubicación precisa. Por favor intente de nuevo en un área más abierta.',
+        retrying: 'Ubicación no disponible, reintentando... (Intento {{attempt}} de {{total}})',
+        macOSLocationUnknown: 'No se pudo determinar su ubicación. Intente moverse a un lugar con mejor señal GPS o active el Wi-Fi para mayor precisión.',
+        macOSHint: 'Intente moverse a un lugar con mejor señal GPS'
       }
     }
   }
