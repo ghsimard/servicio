@@ -1,0 +1,20 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "login": "Acceder",
+    "signUp": "Registrarse",
+    "become_helper": "Conviértete en Helper"
+  },
+  "search": {
+    "placeholder": "Buscar servicios...",
+    "advancedSearch": "Búsqueda Avanzada",
+    "service": "Tipo de Servicio",
+    "location": "Ubicación",
+    "priceRange": "Rango de Precio",
+    "availability": "Disponibilidad",
+    "search": "Buscar"
+  }
+} 

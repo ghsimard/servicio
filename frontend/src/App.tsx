@@ -1,0 +1,330 @@
+import { Box, AppBar, Toolbar, Container, Typography, Button, Avatar, IconButton, Menu, MenuItem } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import theme from './theme';
+import ThemeProvider from './theme/ThemeProvider';
+import SearchBar from './components/SearchBar';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthTestPage from './pages/AuthTestPage';
+import AccountPage from './pages/AccountPage';
+
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/auth-test?tab=1" />;
+  }
+  
+  return children;
+};
+
+// Navigation component that changes based on auth state
+const Navigation = () => {
+  const { t } = useTranslation();
+  const { isAuthenticated, user, logout } = useAuth();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
+  
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    if (anchorEl) {
+      // If menu is already open, close it
+      setAnchorEl(null);
+    } else {
+      // If menu is closed, open it
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleClose();
+  };
+  
+  return (
+    <Box 
+      sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+      role="group"
+      aria-label={t('navigation.actions')}
+    >
+      <LanguageSwitcher />
+      
+      {isAuthenticated ? (
+        <>
+          <IconButton 
+            onClick={handleMenu} 
+            color="inherit"
+            aria-label="Account menu"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            sx={{
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)'
+              },
+              transition: 'background-color 0.3s'
+            }}
+          >
+            <Avatar 
+              sx={{ 
+                width: 32, 
+                height: 32,
+                bgcolor: menuOpen ? theme.palette.secondary.dark : theme.palette.secondary.main,
+                fontSize: '0.875rem',
+                transition: 'background-color 0.3s'
+              }}
+            >
+              {user?.username.substring(0, 1).toUpperCase()}
+            </Avatar>
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={menuOpen}
+            onClose={handleClose}
+          >
+            <MenuItem 
+              component={Link} 
+              to="/account" 
+              onClick={handleClose}
+            >
+              {t('common.profile', 'Account')}
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              {t('common.logout', 'Logout')}
+            </MenuItem>
+          </Menu>
+        </>
+      ) : (
+        <>
+          <Button 
+            variant="contained" 
+            color="secondary" 
+            component={Link} 
+            to="/auth-test?tab=0"
+            aria-label="Sign Up"
+            sx={{ 
+              '&:hover': { 
+                backgroundColor: theme.palette.secondary.dark 
+              } 
+            }}
+          >
+            {t('common.signUp', 'Sign Up')}
+          </Button>
+          <Button 
+            color="inherit" 
+            component={Link} 
+            to="/auth-test?tab=1"
+            aria-label="Login"
+            sx={{ 
+              '&:hover': { 
+                backgroundColor: 'rgba(255, 255, 255, 0.08)' 
+              } 
+            }}
+          >
+            {t('common.login', 'Login')}
+          </Button>
+        </>
+      )}
+    </Box>
+  );
+};
+
+function AppContent() {
+  const { t } = useTranslation();
+
+  return (
+    <Router>
+      <Box 
+        sx={{ 
+          width: '100vw',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: 'background.default',
+          overflow: 'hidden'
+        }}
+        role="application"
+        aria-label={t('app.title')}
+      >
+        <AppBar 
+          position="fixed" 
+          elevation={0}
+          component="header"
+          sx={{
+            width: '100%'
+          }}
+        >
+          <Toolbar 
+            sx={{ px: { xs: 2, sm: 4 }, display: 'flex', justifyContent: 'flex-end' }}
+            role="navigation"
+            aria-label={t('navigation.main')}
+          >
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                position: 'absolute',
+                left: { xs: 16, sm: 32 },
+                fontWeight: 600,
+                letterSpacing: '-0.5px',
+                color: 'white',
+                display: { xs: 'block', sm: 'none' }
+              }}
+              role="heading"
+              aria-level={1}
+            >
+              {t('app.title')}
+            </Typography>
+            <Navigation />
+          </Toolbar>
+        </AppBar>
+        <Toolbar /> {/* Spacer for fixed AppBar */}
+        <Routes>
+          <Route path="/auth-test" element={<AuthTestPage />} />
+          <Route path="/account" element={
+            <ProtectedRoute>
+              <AccountPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/account" element={
+            <Navigate to="/account" replace />
+          } />
+          <Route path="/profile" element={
+            <Navigate to="/account" replace />
+          } />
+          <Route path="/" element={
+            <Box
+              component="main"
+              sx={{
+                flexGrow: 1,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 'calc(100vh - 64px)',
+                py: { xs: 2, sm: 3 }
+              }}
+              role="main"
+              aria-label={t('app.mainContent')}
+            >
+              <Container 
+                maxWidth="lg"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  px: { xs: 2, sm: 4 },
+                  height: '100%'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    maxWidth: 1400,
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    transform: 'translateY(-10%)'
+                  }}
+                  role="region"
+                  aria-label={t('app.searchSection')}
+                >
+                  <Typography 
+                    variant="h1" 
+                    component="div"
+                    sx={{
+                      fontSize: { xs: '3rem', sm: '3.5rem', md: '4rem' },
+                      fontWeight: 900,
+                      color: theme.palette.primary.main,
+                      mb: 0,
+                      letterSpacing: '0.2em',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      width: '100%',
+                      display: { xs: 'none', sm: 'block' }
+                    }}
+                    role="heading"
+                    aria-level={1}
+                  >
+                    {t('app.title')}
+                  </Typography>
+                  <Typography 
+                    variant="h2" 
+                    component="h1"
+                    sx={{
+                      fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' },
+                      fontWeight: 800,
+                      color: theme.palette.primary.main,
+                      mb: 1.5,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      width: '100%'
+                    }}
+                    role="heading"
+                    aria-level={2}
+                  >
+                    {t('app.mainHeading')}
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    component="p"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 3,
+                      maxWidth: '600px',
+                      width: '100%',
+                      mx: 'auto',
+                      lineHeight: 1.4,
+                      fontSize: { xs: '1rem', sm: '1.125rem' }
+                    }}
+                    role="contentinfo"
+                  >
+                    {t('app.subtitle')}
+                  </Typography>
+                  <Box 
+                    sx={{ width: '100%' }}
+                    role="search"
+                    aria-label={t('search.label')}
+                  >
+                    <SearchBar />
+                  </Box>
+                </Box>
+              </Container>
+            </Box>
+          } />
+        </Routes>
+      </Box>
+    </Router>
+  );
+}
+
+function App() {
+  return (
+    <AccessibilityProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </AccessibilityProvider>
+  );
+}
+
+export default App;
