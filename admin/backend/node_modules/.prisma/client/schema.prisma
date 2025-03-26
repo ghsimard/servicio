@@ -1,0 +1,867 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId                                                       String                     @id @default(dbgenerated("gen_random_uuid()")) @map("user_id") @db.Uuid
+  firstname                                                    String?                    @db.VarChar(100)
+  lastname                                                     String?                    @db.VarChar(100)
+  lastname2                                                    String?                    @db.VarChar(100)
+  dob                                                          DateTime?                  @db.Date
+  username                                                     String                     @db.VarChar(50)
+  email                                                        String                     @unique @db.VarChar(255)
+  passwordHash                                                 String?                    @map("password_hash") @db.VarChar(255)
+  preferred_language                                           String?                    @default("en") @db.VarChar(10)
+  profile_photo_url                                            String?                    @db.VarChar(255)
+  subscription_id                                              String?                    @db.Uuid
+  company_id                                                   String?                    @db.Uuid
+  primary_address_id                                           String?                    @db.Uuid
+  certification_status                                         certification_status_type? @default(uncertified)
+  last_certified_at                                            DateTime?                  @db.Timestamp(6)
+  createdAt                                                    DateTime?                  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                                    DateTime?                  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  gender                                                       String?                    @db.VarChar(20)
+  title                                                        String?                    @db.VarChar(20)
+  bookings                                                     Booking[]
+  campaigns                                                    Campaign[]
+  content_moderation                                           content_moderation[]
+  contracts_contracts_helper_idTousers                         Contract[]                 @relation("contracts_helper_idTousers")
+  contracts_contracts_needer_idTousers                         Contract[]                 @relation("contracts_needer_idTousers")
+  database_logs                                                database_logs[]
+  exports                                                      exports[]
+  helper_certifications_helper_certifications_admin_idTousers  helper_certifications[]    @relation("helper_certifications_admin_idTousers")
+  helper_certifications_helper_certifications_helper_idTousers helper_certifications[]    @relation("helper_certifications_helper_idTousers")
+  helper_services                                              HelperService[]
+  invoices_invoices_helper_idTousers                           Invoice[]                  @relation("invoices_helper_idTousers")
+  invoices_invoices_needer_idTousers                           Invoice[]                  @relation("invoices_needer_idTousers")
+  messages_messages_receiver_idTousers                         Message[]                  @relation("messages_receiver_idTousers")
+  messages                                                     Message[]
+  realtime_locations                                           realtime_locations[]
+  rfp_notifications                                            rfp_notifications[]
+  rfps                                                         Rfp[]
+  subscriptions_subscriptions_needer_idTousers                 subscriptions[]            @relation("subscriptions_needer_idTousers")
+  transactions_transactions_helper_idTousers                   Transaction[]              @relation("transactions_helper_idTousers")
+  transactions_transactions_needer_idTousers                   Transaction[]              @relation("transactions_needer_idTousers")
+  user_contacts                                                user_contacts[]
+  user_roles                                                   user_roles[]
+  companies                                                    companies?                 @relation(fields: [company_id], references: [company_id], onDelete: NoAction, onUpdate: NoAction)
+  addresses                                                    Address?                   @relation(fields: [primary_address_id], references: [addressId], onDelete: NoAction, onUpdate: NoAction)
+  subscriptions_users_subscription_idTosubscriptions           subscriptions?             @relation("users_subscription_idTosubscriptions", fields: [subscription_id], references: [subscription_id], onDelete: NoAction, onUpdate: NoAction)
+  verification_tokens                                          verification_tokens[]
+
+  @@index([company_id], map: "idx_users_company_id")
+  @@index([email], map: "idx_users_email")
+  @@index([primary_address_id], map: "idx_users_primary_address_id")
+  @@index([subscription_id], map: "idx_users_subscription_id")
+  @@map("users")
+}
+
+model Service {
+  serviceId       String          @id @default(dbgenerated("gen_random_uuid()")) @map("service_id") @db.Uuid
+  parentServiceId String?         @map("parent_service_id") @db.Uuid
+  level           Int
+  nameEn          String          @map("name_en") @db.VarChar(100)
+  nameFr          String?         @map("name_fr") @db.VarChar(100)
+  nameEs          String?         @map("name_es") @db.VarChar(100)
+  isActive        Boolean         @default(true) @map("is_active")
+  metadata        Json?
+  createdAt       DateTime?       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  helperServices  HelperService[]
+  rfps            Rfp[]
+  parentService   Service?        @relation("ServiceToService", fields: [parentServiceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+  childServices   Service[]       @relation("ServiceToService")
+
+  @@index([parentServiceId], map: "idx_services_parent_service_id")
+  @@map("services")
+}
+
+model HelperService {
+  helperServiceId    String         @id @default(dbgenerated("gen_random_uuid()")) @map("helper_service_id") @db.Uuid
+  user_id            String         @db.Uuid
+  serviceId          String         @map("service_id") @db.Uuid
+  address_id         String?        @db.Uuid
+  active_campaign_id String?        @db.Uuid
+  price              Decimal?       @db.Decimal(10, 2)
+  availability       Json?
+  location_type      location_type?
+  location_details   Json?
+  listing_photo_url  String?        @db.VarChar(255)
+  gallery_id         String?        @db.VarChar(24)
+  visibility         Json?          @default("{\"photo\": true, \"price\": true, \"address\": true, \"contacts\": true, \"location\": true, \"availability\": true}")
+  createdAt          DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  bookings           Booking[]
+  campaigns          Campaign?      @relation(fields: [active_campaign_id], references: [campaignId], onDelete: NoAction, onUpdate: NoAction)
+  addresses          Address?       @relation(fields: [address_id], references: [addressId], onDelete: NoAction, onUpdate: NoAction)
+  service            Service        @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+  users              User           @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([active_campaign_id], map: "idx_helper_services_active_campaign_id")
+  @@index([address_id], map: "idx_helper_services_address_id")
+  @@index([serviceId], map: "idx_helper_services_service_id")
+  @@index([user_id], map: "idx_helper_services_user_id")
+  @@map("helper_services")
+}
+
+model Booking {
+  bookingId                                          String          @id @default(dbgenerated("gen_random_uuid()")) @map("booking_id") @db.Uuid
+  neederId                                           String          @map("needer_id") @db.Uuid
+  helperServiceId                                    String          @map("helper_service_id") @db.Uuid
+  deliveryAddressId                                  String?         @map("delivery_address_id") @db.Uuid
+  queue_position                                     Int?
+  campaignId                                         String?         @map("campaign_id") @db.Uuid
+  startTime                                          DateTime?       @map("start_time") @db.Timestamp(6)
+  endTime                                            DateTime?       @map("end_time") @db.Timestamp(6)
+  status                                             booking_status? @default(pending)
+  commission                                         Decimal?        @db.Decimal(10, 2)
+  transactionId                                      String?         @map("transaction_id") @db.Uuid
+  neederConfirmed                                    Boolean?        @default(false) @map("needer_confirmed")
+  helperConfirmed                                    Boolean?        @default(false) @map("helper_confirmed")
+  createdAt                                          DateTime?       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                          DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  campaign                                           Campaign?       @relation(fields: [campaignId], references: [campaignId], onDelete: NoAction, onUpdate: NoAction)
+  deliveryAddress                                    Address?        @relation(fields: [deliveryAddressId], references: [addressId], onDelete: NoAction, onUpdate: NoAction)
+  helperService                                      HelperService   @relation(fields: [helperServiceId], references: [helperServiceId], onDelete: NoAction, onUpdate: NoAction)
+  needer                                             User            @relation(fields: [neederId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  transactions_bookings_transaction_idTotransactions Transaction?    @relation("bookings_transaction_idTotransactions", fields: [transactionId], references: [transactionId], onDelete: NoAction, onUpdate: NoAction)
+  contracts                                          Contract[]
+  invoices                                           Invoice[]
+  messages                                           Message[]
+  reviews                                            Review[]
+  transaction                                        Transaction[]   @relation("BookingTransaction")
+
+  @@index([campaignId], map: "idx_bookings_campaign_id")
+  @@index([deliveryAddressId], map: "idx_bookings_delivery_address_id")
+  @@index([helperServiceId], map: "idx_bookings_helper_service_id")
+  @@index([neederId], map: "idx_bookings_needer_id")
+  @@map("bookings")
+}
+
+model Address {
+  addressId                                               String          @id @default(dbgenerated("gen_random_uuid()")) @map("address_id") @db.Uuid
+  entityType                                              entity_type     @map("entity_type")
+  entityId                                                String          @map("entity_id") @db.Uuid
+  street                                                  String?         @db.VarChar(255)
+  city                                                    String?         @db.VarChar(100)
+  state                                                   String?         @db.VarChar(100)
+  postalCode                                              String?         @map("postal_code") @db.VarChar(20)
+  country                                                 String          @db.VarChar(100)
+  latitude                                                Decimal?        @db.Decimal(9, 6)
+  longitude                                               Decimal?        @db.Decimal(9, 6)
+  isPrimary                                               Boolean?        @default(false) @map("is_primary")
+  visibility                                              Json?           @default("{\"public\": false}")
+  createdAt                                               DateTime?       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                               DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  bookings                                                Booking[]
+  helper_services                                         HelperService[]
+  transactions_transactions_helper_location_idToaddresses Transaction[]   @relation("transactions_helper_location_idToaddresses")
+  transactions_transactions_needer_location_idToaddresses Transaction[]   @relation("transactions_needer_location_idToaddresses")
+  users                                                   User[]
+
+  @@index([entityType, entityId], map: "idx_addresses_entity")
+  @@map("addresses")
+}
+
+model Review {
+  reviewId  String    @id @default(dbgenerated("gen_random_uuid()")) @map("review_id") @db.Uuid
+  bookingId String    @map("booking_id") @db.Uuid
+  rating    Int?
+  comment   String?
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  booking   Booking   @relation(fields: [bookingId], references: [bookingId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([bookingId], map: "idx_reviews_booking_id")
+  @@map("reviews")
+}
+
+model Message {
+  messageId                         String    @id @default(dbgenerated("gen_random_uuid()")) @map("message_id") @db.Uuid
+  senderId                          String    @map("sender_id") @db.Uuid
+  receiver_id                       String    @db.Uuid
+  bookingId                         String?   @map("booking_id") @db.Uuid
+  content                           String?
+  sent_at                           DateTime? @default(now()) @db.Timestamp(6)
+  read                              Boolean?  @default(false)
+  createdAt                         DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                         DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  booking                           Booking?  @relation(fields: [bookingId], references: [bookingId], onDelete: NoAction, onUpdate: NoAction)
+  users_messages_receiver_idTousers User      @relation("messages_receiver_idTousers", fields: [receiver_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  sender                            User      @relation(fields: [senderId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([bookingId], map: "idx_messages_booking_id")
+  @@index([receiver_id], map: "idx_messages_receiver_id")
+  @@index([senderId], map: "idx_messages_sender_id")
+  @@map("messages")
+}
+
+model Campaign {
+  campaignId         String               @id @default(dbgenerated("gen_random_uuid()")) @map("campaign_id") @db.Uuid
+  user_id            String               @db.Uuid
+  campaign_type      campaign_type
+  entity_type        entity_type
+  entity_id          String               @db.Uuid
+  start_date         DateTime             @db.Timestamp(6)
+  end_date           DateTime             @db.Timestamp(6)
+  cost               Decimal              @db.Decimal(10, 2)
+  status             campaign_status?     @default(pending_payment)
+  details            Json?
+  createdAt          DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime?            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  bookings           Booking[]
+  users              User                 @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  helper_services    HelperService[]
+  realtime_locations realtime_locations[]
+
+  @@index([entity_type, entity_id], map: "idx_campaigns_entity")
+  @@index([user_id], map: "idx_campaigns_user_id")
+  @@map("campaigns")
+}
+
+model Transaction {
+  transactionId                                        String              @id @default(dbgenerated("gen_random_uuid()")) @map("transaction_id") @db.Uuid
+  bookingId                                            String              @map("booking_id") @db.Uuid
+  invoice_id                                           String?             @db.Uuid
+  needer_id                                            String              @db.Uuid
+  helper_id                                            String              @db.Uuid
+  total_amount                                         Decimal?            @db.Decimal(10, 2)
+  commission_amount                                    Decimal?            @db.Decimal(10, 2)
+  helper_amount                                        Decimal?            @db.Decimal(10, 2)
+  service_fee                                          Decimal?            @db.Decimal(10, 2)
+  currency                                             String              @default("EUR") @db.VarChar(10)
+  helper_location_id                                   String?             @db.Uuid
+  needer_location_id                                   String?             @db.Uuid
+  status                                               transaction_status? @default(pending)
+  payment_method                                       payment_method?
+  payment_details                                      Json?
+  needer_confirmed                                     Boolean?            @default(false)
+  helper_confirmed                                     Boolean?            @default(false)
+  createdAt                                            DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                            DateTime?           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  completed_at                                         DateTime?           @db.Timestamp(6)
+  bookings_bookings_transaction_idTotransactions       Booking[]           @relation("bookings_transaction_idTotransactions")
+  transaction_taxes                                    transaction_taxes[]
+  booking                                              Booking             @relation("BookingTransaction", fields: [bookingId], references: [bookingId], onDelete: NoAction, onUpdate: NoAction)
+  users_transactions_helper_idTousers                  User                @relation("transactions_helper_idTousers", fields: [helper_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  addresses_transactions_helper_location_idToaddresses Address?            @relation("transactions_helper_location_idToaddresses", fields: [helper_location_id], references: [addressId], onDelete: NoAction, onUpdate: NoAction)
+  invoices                                             Invoice?            @relation(fields: [invoice_id], references: [invoiceId], onDelete: NoAction, onUpdate: NoAction)
+  users_transactions_needer_idTousers                  User                @relation("transactions_needer_idTousers", fields: [needer_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  addresses_transactions_needer_location_idToaddresses Address?            @relation("transactions_needer_location_idToaddresses", fields: [needer_location_id], references: [addressId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([bookingId], map: "idx_transactions_booking_id")
+  @@index([helper_id], map: "idx_transactions_helper_id")
+  @@index([helper_location_id], map: "idx_transactions_helper_location_id")
+  @@index([invoice_id], map: "idx_transactions_invoice_id")
+  @@index([needer_id], map: "idx_transactions_needer_id")
+  @@index([needer_location_id], map: "idx_transactions_needer_location_id")
+  @@map("transactions")
+}
+
+model Contract {
+  contractId                       String           @id @default(dbgenerated("gen_random_uuid()")) @map("contract_id") @db.Uuid
+  bookingId                        String           @map("booking_id") @db.Uuid
+  needer_id                        String           @db.Uuid
+  helper_id                        String           @db.Uuid
+  contract_type                    contract_type
+  status                           contract_status? @default(draft)
+  contract_url                     String?          @db.VarChar(255)
+  signed_at                        DateTime?        @db.Timestamp(6)
+  expires_at                       DateTime?        @db.Timestamp(6)
+  terms                            String?
+  signature_needer                 Json?
+  signature_helper                 Json?
+  createdAt                        DateTime?        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                        DateTime?        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  booking                          Booking          @relation(fields: [bookingId], references: [bookingId], onDelete: NoAction, onUpdate: NoAction)
+  users_contracts_helper_idTousers User             @relation("contracts_helper_idTousers", fields: [helper_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  users_contracts_needer_idTousers User             @relation("contracts_needer_idTousers", fields: [needer_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([bookingId], map: "idx_contracts_booking_id")
+  @@index([helper_id], map: "idx_contracts_helper_id")
+  @@index([needer_id], map: "idx_contracts_needer_id")
+  @@map("contracts")
+}
+
+model Invoice {
+  invoiceId                       String          @id @default(dbgenerated("gen_random_uuid()")) @map("invoice_id") @db.Uuid
+  bookingId                       String          @map("booking_id") @db.Uuid
+  needer_id                       String          @db.Uuid
+  helper_id                       String          @db.Uuid
+  total_amount                    Decimal         @db.Decimal(10, 2)
+  commission_amount               Decimal         @db.Decimal(10, 2)
+  helper_amount                   Decimal         @db.Decimal(10, 2)
+  service_fee                     Decimal?        @db.Decimal(10, 2)
+  total_taxes                     Decimal?        @default(0.00) @db.Decimal(10, 2)
+  currency                        String          @default("EUR") @db.VarChar(10)
+  status                          invoice_status? @default(draft)
+  issued_at                       DateTime?       @default(now()) @db.Timestamp(6)
+  due_date                        DateTime?       @db.Timestamp(6)
+  paid_at                         DateTime?       @db.Timestamp(6)
+  invoice_url                     String?         @db.VarChar(255)
+  createdAt                       DateTime?       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                       DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  booking                         Booking         @relation(fields: [bookingId], references: [bookingId], onDelete: NoAction, onUpdate: NoAction)
+  users_invoices_helper_idTousers User            @relation("invoices_helper_idTousers", fields: [helper_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  users_invoices_needer_idTousers User            @relation("invoices_needer_idTousers", fields: [needer_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  transactions                    Transaction[]
+
+  @@index([bookingId], map: "idx_invoices_booking_id")
+  @@index([helper_id], map: "idx_invoices_helper_id")
+  @@index([needer_id], map: "idx_invoices_needer_id")
+  @@map("invoices")
+}
+
+model Rfp {
+  rfpId             String              @id @default(dbgenerated("gen_random_uuid()")) @map("rfp_id") @db.Uuid
+  needer_id         String              @db.Uuid
+  title             String              @db.VarChar(255)
+  serviceId         String              @map("service_id") @db.Uuid
+  details           String?
+  expiration_date   DateTime?           @db.Timestamp(6)
+  status            rfp_status?         @default(active)
+  payment_status    payment_status?     @default(free)
+  price             Decimal?            @default(0.00) @db.Decimal(10, 2)
+  createdAt         DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime?           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  rfp_notifications rfp_notifications[]
+  users             User                @relation(fields: [needer_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  service           Service             @relation(fields: [serviceId], references: [serviceId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([needer_id], map: "idx_rfps_needer_id")
+  @@index([serviceId], map: "idx_rfps_service_id")
+  @@map("rfps")
+}
+
+model Helpers {
+  id                String   @id @db.Uuid
+  name              String   @db.VarChar(255)
+  email             String   @unique @db.VarChar(255)
+  phone             String?  @db.VarChar(255)
+  businessName      String?  @db.VarChar(255)
+  services          Json     @default("[]")
+  yearsOfExperience Int?
+  age               Int?
+  languages         Json     @default("[]")
+  rating            Float?
+  gender            String?  @db.VarChar(255)
+  certified         Boolean  @default(false)
+  latitude          Float?
+  longitude         Float?
+  createdAt         DateTime @db.Timestamptz(6)
+  updatedAt         DateTime @db.Timestamptz(6)
+}
+
+model admin_settings {
+  setting_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key        String    @db.VarChar(100)
+  value      Json
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([key], map: "idx_admin_settings_key")
+}
+
+model certification_proofs {
+  proof_id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  certification_id      String                @db.Uuid
+  file_type             proof_file_type
+  file_url              String                @db.VarChar(255)
+  file_name             String?               @db.VarChar(100)
+  uploaded_at           DateTime?             @default(now()) @db.Timestamp(6)
+  created_at            DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at            DateTime?             @default(now()) @db.Timestamp(6)
+  helper_certifications helper_certifications @relation(fields: [certification_id], references: [certification_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([certification_id], map: "idx_certification_proofs_certification_id")
+}
+
+model companies {
+  company_id  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String    @db.VarChar(255)
+  description String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  users       User[]
+}
+
+model content_moderation {
+  moderation_id       String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String                 @db.Uuid
+  content_type        moderation_type
+  entity_type         moderation_entity_type
+  entity_id           String                 @db.Uuid
+  content_value       String?
+  ia_score            Decimal?               @db.Decimal(3, 2)
+  ia_status           moderation_status?     @default(pending)
+  admin_status        moderation_status?     @default(pending)
+  moderation_comments String?
+  created_at          DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?              @default(now()) @db.Timestamp(6)
+  users               User                   @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([entity_type, entity_id], map: "idx_content_moderation_entity")
+  @@index([user_id], map: "idx_content_moderation_user_id")
+}
+
+model database_logs {
+  log_id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String?     @db.Uuid
+  table_name        String      @db.VarChar(50)
+  action            action_type
+  record_id         String      @db.Uuid
+  details           Json?
+  operation_details Json?
+  timestamp         DateTime?   @default(now()) @db.Timestamp(6)
+  users             User?       @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([details], map: "idx_database_logs_details", type: Gin)
+  @@index([operation_details], map: "idx_database_logs_operation_details", type: Gin)
+  @@index([record_id], map: "idx_database_logs_record_id")
+  @@index([table_name, action], map: "idx_database_logs_table_action")
+  @@index([table_name, timestamp], map: "idx_database_logs_table_timestamp")
+  @@index([timestamp], map: "idx_database_logs_timestamp")
+  @@index([user_id], map: "idx_database_logs_user_id")
+}
+
+model exchange_rates {
+  exchange_rate_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  from_currency    String    @db.VarChar(10)
+  to_currency      String    @db.VarChar(10)
+  rate             Decimal   @db.Decimal(15, 6)
+  effective_date   DateTime  @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([from_currency, to_currency, effective_date], map: "idx_exchange_rates_currency_date")
+}
+
+model exports {
+  export_id   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String      @db.Uuid
+  entity_type entity_type
+  entity_id   String      @db.Uuid
+  file_type   file_type?  @default(pdf)
+  file_url    String?     @db.VarChar(255)
+  created_at  DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime?   @default(now()) @db.Timestamp(6)
+  downloaded  Boolean?    @default(false)
+  users       User        @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([entity_type, entity_id], map: "idx_exports_entity")
+  @@index([user_id], map: "idx_exports_user_id")
+}
+
+model helper_certifications {
+  certification_id                             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  helper_id                                    String                 @db.Uuid
+  admin_id                                     String?                @db.Uuid
+  status                                       cert_status?           @default(pending)
+  evaluation_date                              DateTime?              @default(now()) @db.Timestamp(6)
+  evaluation_comments                          String?
+  proof_required                               Boolean?               @default(true)
+  start_date                                   DateTime?              @db.Timestamp(6)
+  end_date                                     DateTime?              @db.Timestamp(6)
+  is_visible                                   Boolean?               @default(false)
+  created_at                                   DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at                                   DateTime?              @default(now()) @db.Timestamp(6)
+  certification_proofs                         certification_proofs[]
+  users_helper_certifications_admin_idTousers  User?                  @relation("helper_certifications_admin_idTousers", fields: [admin_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  users_helper_certifications_helper_idTousers User                   @relation("helper_certifications_helper_idTousers", fields: [helper_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([admin_id], map: "idx_helper_certifications_admin_id")
+  @@index([helper_id], map: "idx_helper_certifications_helper_id")
+}
+
+model realtime_locations {
+  location_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String    @db.Uuid
+  latitude    Decimal   @db.Decimal(9, 6)
+  longitude   Decimal   @db.Decimal(9, 6)
+  timestamp   DateTime? @default(now()) @db.Timestamp(6)
+  campaign_id String?   @db.Uuid
+  campaigns   Campaign? @relation(fields: [campaign_id], references: [campaignId], onDelete: NoAction, onUpdate: NoAction)
+  users       User      @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([campaign_id], map: "idx_realtime_locations_campaign_id")
+  @@index([timestamp], map: "idx_realtime_locations_timestamp")
+  @@index([user_id], map: "idx_realtime_locations_user_id")
+}
+
+model rfp_notifications {
+  notification_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rfp_id          String    @db.Uuid
+  helper_id       String    @db.Uuid
+  sent_at         DateTime? @default(now()) @db.Timestamp(6)
+  read            Boolean?  @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           User      @relation(fields: [helper_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  rfps            Rfp       @relation(fields: [rfp_id], references: [rfpId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([helper_id], map: "idx_rfp_notifications_helper_id")
+  @@index([rfp_id], map: "idx_rfp_notifications_rfp_id")
+}
+
+model subscriptions {
+  subscription_id                            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  needer_id                                  String    @db.Uuid
+  plan_type                                  plan_type
+  start_date                                 DateTime? @default(now()) @db.Timestamp(6)
+  end_date                                   DateTime? @db.Timestamp(6)
+  features                                   Json
+  created_at                                 DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                                 DateTime? @default(now()) @db.Timestamp(6)
+  users_subscriptions_needer_idTousers       User      @relation("subscriptions_needer_idTousers", fields: [needer_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  users_users_subscription_idTosubscriptions User[]    @relation("users_subscription_idTosubscriptions")
+
+  @@index([needer_id], map: "idx_subscriptions_needer_id")
+}
+
+model tax_remittances {
+  remittance_id String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tax_rule_id   String             @db.Uuid
+  total_amount  Decimal            @db.Decimal(10, 2)
+  currency      String             @default("EUR") @db.VarChar(10)
+  period_start  DateTime           @db.Timestamp(6)
+  period_end    DateTime           @db.Timestamp(6)
+  remitted_at   DateTime?          @db.Timestamp(6)
+  status        remittance_status? @default(pending)
+  created_at    DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?          @default(now()) @db.Timestamp(6)
+  tax_rules     tax_rules          @relation(fields: [tax_rule_id], references: [tax_rule_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tax_rule_id], map: "idx_tax_remittances_tax_rule_id")
+}
+
+model tax_rules {
+  tax_rule_id       String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jurisdiction_type jurisdiction_type
+  jurisdiction_code String              @db.VarChar(50)
+  sector_code       String?             @db.VarChar(50)
+  tax_name          String              @db.VarChar(100)
+  tax_rate          Decimal             @db.Decimal(5, 2)
+  applies_to        applies_to_type
+  created_at        DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamp(6)
+  tax_remittances   tax_remittances[]
+  transaction_taxes transaction_taxes[]
+
+  @@index([jurisdiction_code], map: "idx_tax_rules_jurisdiction_code")
+}
+
+model transaction_taxes {
+  transaction_tax_id String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transaction_id     String      @db.Uuid
+  tax_rule_id        String      @db.Uuid
+  amount             Decimal     @db.Decimal(10, 2)
+  taxable_amount     Decimal     @db.Decimal(10, 2)
+  currency           String      @default("EUR") @db.VarChar(10)
+  collected_from     String      @db.VarChar(10)
+  status             tax_status? @default(pending)
+  remitted_at        DateTime?   @db.Timestamp(6)
+  created_at         DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?   @default(now()) @db.Timestamp(6)
+  tax_rules          tax_rules   @relation(fields: [tax_rule_id], references: [tax_rule_id], onDelete: NoAction, onUpdate: NoAction)
+  transactions       Transaction @relation(fields: [transaction_id], references: [transactionId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tax_rule_id], map: "idx_transaction_taxes_tax_rule_id")
+  @@index([transaction_id], map: "idx_transaction_taxes_transaction_id")
+}
+
+model translations {
+  translation_id  String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity_type     translation_entity_type
+  entity_id       String                  @db.Uuid
+  language        String                  @db.VarChar(10)
+  translated_text String?
+  created_at      DateTime?               @default(now()) @db.Timestamp(6)
+  updated_at      DateTime?               @default(now()) @db.Timestamp(6)
+
+  @@index([entity_type, entity_id], map: "idx_translations_entity")
+}
+
+model user_contacts {
+  contact_id    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String       @db.Uuid
+  contact_type  contact_type
+  contact_value String       @db.VarChar(255)
+  extension     String?      @db.VarChar(20)
+  label         String?      @db.VarChar(50)
+  is_verified   Boolean?     @default(false)
+  visibility    Boolean?     @default(true)
+  created_at    DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?    @default(now()) @db.Timestamp(6)
+  users         User         @relation(fields: [user_id], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_user_contacts_user_id")
+}
+
+model user_roles {
+  user_role_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String    @db.Uuid
+  role         role_type
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  users        User      @relation(fields: [user_id], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_user_roles_user_id")
+}
+
+model verification_tokens {
+  token_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String   @unique
+  type       String   @default("email_verification") @db.VarChar(50)
+  expires_at DateTime @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  users      User     @relation(fields: [user_id], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([token], map: "idx_verification_tokens_token")
+  @@index([user_id], map: "idx_verification_tokens_user_id")
+}
+
+enum action_type {
+  insert
+  update
+  delete
+}
+
+enum applies_to_type {
+  service_price
+  platform_commission
+  service_fee
+  all
+}
+
+enum booking_status {
+  pending
+  confirmed
+  completed
+  canceled
+}
+
+enum campaign_status {
+  active
+  expired
+  pending_payment
+}
+
+enum campaign_type {
+  promotion
+  certification_marker
+  priority_bump
+  motivated_helper
+  highlighted
+  expanded_market
+  extra_services
+  realtime_location
+  queue_system
+}
+
+enum cert_status {
+  pending
+  approved
+  rejected
+  revoked
+}
+
+enum certification_status_type {
+  uncertified
+  certified
+  revoked
+}
+
+enum contact_type {
+  fax
+  mobile
+  iphone
+  home
+  work
+  other_phone
+  custom_phone
+  email_personal
+  email_work
+  email_other
+  facebook
+  linkedin
+  twitter
+  instagram
+  custom_social
+}
+
+enum contract_status {
+  draft
+  sent
+  signed
+  rejected
+  expired
+}
+
+enum contract_type {
+  service
+  subscription
+  custom
+}
+
+enum entity_type {
+  user
+  helper_service
+  booking
+  rfp
+}
+
+enum enum_users_role {
+  USER
+  HELPER
+  ADMIN
+  user
+  admin
+}
+
+enum file_type {
+  pdf
+  docx
+  csv
+}
+
+enum invoice_status {
+  draft
+  sent
+  paid
+  overdue
+  canceled
+}
+
+enum jurisdiction_type {
+  municipal
+  provincial
+  federal
+  sector_specific
+}
+
+enum location_type {
+  international
+  country
+  state
+  city
+  neighborhood
+}
+
+enum log_action {
+  insert
+  update
+  delete
+}
+
+enum moderation_entity_type {
+  account_photo
+  listing_photo
+  certification_proof
+  rfp
+  review
+  message
+  portfolio_photo
+  gallery_photo
+}
+
+enum moderation_status {
+  approved
+  rejected
+  pending
+}
+
+enum moderation_type {
+  image
+  text
+}
+
+enum notification_type {
+  booking_request
+  booking_confirmation
+  booking_cancellation
+  message_received
+  payment_received
+  review_received
+  system_notification
+}
+
+enum payment_method {
+  credit_card
+  bank_transfer
+  crypto
+  paypal
+}
+
+enum payment_status {
+  pending
+  paid
+  free
+}
+
+enum plan_type {
+  free
+  premium
+  enterprise
+}
+
+enum proof_file_type {
+  image
+  pdf
+  other
+}
+
+enum remittance_status {
+  pending
+  remitted
+}
+
+enum rfp_status {
+  active
+  expired
+  completed
+  canceled
+}
+
+enum role_type {
+  needer
+  helper
+  admin
+}
+
+enum tax_status {
+  pending
+  collected
+  remitted
+}
+
+enum transaction_status {
+  pending
+  held
+  completed
+  disputed
+  canceled
+}
+
+enum translation_entity_type {
+  service
+  company
+  ui_element
+  field_label
+  tooltip
+  title
+  dropdown_value
+  button
+  calendar
+}
+
+enum user_role_type {
+  needer
+  helper
+  admin
+}
