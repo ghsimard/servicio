@@ -1,0 +1,120 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "noResults": "Aucun résultat trouvé",
+    "actions": "Actions",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément ?"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "loginButton": "Se connecter",
+    "loginError": "Email ou mot de passe invalide",
+    "pleaseLogin": "Veuillez vous connecter pour continuer"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "overview": "Vue d'ensemble",
+    "statistics": "Statistiques",
+    "recentActivity": "Activité récente",
+    "noRecentActivity": "Aucune activité récente",
+    "totalUsers": "Total utilisateurs",
+    "totalServices": "Total services",
+    "totalBookings": "Total réservations"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "list": "Liste des utilisateurs",
+    "create": "Créer un utilisateur",
+    "edit": "Modifier l'utilisateur",
+    "delete": "Supprimer l'utilisateur",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Adresse e-mail",
+    "username": "Nom d'utilisateur",
+    "preferredLanguage": "Langue préférée",
+    "role": "Rôle",
+    "status": "Statut",
+    "roles": "Rôles",
+    "roles.admin": "Administrateur",
+    "roles.moderator": "Modérateur",
+    "roles.helper": "Assistant",
+    "roles.needer": "Demandeur",
+    "comingSoon": "Cette fonctionnalité sera bientôt disponible !",
+    "createSuccess": "Utilisateur créé avec succès",
+    "createError": "Échec de la création de l'utilisateur",
+    "updateSuccess": "Utilisateur mis à jour avec succès",
+    "updateError": "Échec de la mise à jour de l'utilisateur",
+    "deleteSuccess": "Utilisateur supprimé avec succès",
+    "deleteError": "Échec de la suppression de l'utilisateur"
+  },
+  "services": {
+    "title": "Services",
+    "list": "Liste des services",
+    "create": "Créer un service",
+    "edit": "Modifier le service",
+    "delete": "Supprimer le service",
+    "name": "Nom",
+    "description": "Description",
+    "category": "Catégorie",
+    "price": "Prix",
+    "duration": "Durée",
+    "status": "Statut",
+    "comingSoon": "Cette fonctionnalité sera bientôt disponible !"
+  },
+  "bookings": {
+    "title": "Réservations",
+    "list": "Liste des réservations",
+    "create": "Créer une réservation",
+    "edit": "Modifier la réservation",
+    "delete": "Supprimer la réservation",
+    "startTime": "Heure de début",
+    "endTime": "Heure de fin",
+    "status": "Statut",
+    "totalPrice": "Prix total",
+    "comingSoon": "Cette fonctionnalité sera bientôt disponible !"
+  },
+  "reviews": {
+    "title": "Avis",
+    "list": "Liste des avis",
+    "rating": "Note",
+    "comment": "Commentaire",
+    "comingSoon": "Cette fonctionnalité sera bientôt disponible !"
+  },
+  "payments": {
+    "title": "Paiements",
+    "list": "Liste des paiements",
+    "amount": "Montant",
+    "status": "Statut",
+    "method": "Mode de paiement",
+    "comingSoon": "Cette fonctionnalité sera bientôt disponible !"
+  },
+  "accessibility": {
+    "title": "Options d'accessibilité",
+    "highContrast": "Mode contraste élevé",
+    "largeText": "Mode texte agrandi",
+    "screenReader": "Lecteur d'écran",
+    "keyboardNavigation": "Navigation au clavier"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "comingSoon": "Cette fonctionnalité sera bientôt disponible !"
+  },
+  "notFound": {
+    "title": "Page non trouvée",
+    "message": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "backToHome": "Retour à l'accueil"
+  }
+} 

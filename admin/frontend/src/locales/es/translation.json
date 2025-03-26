@@ -1,0 +1,81 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "actions": "Acciones",
+    "confirmDelete": "¿Está seguro de que desea eliminar este elemento?"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "logout": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "loginButton": "Iniciar Sesión",
+    "loginError": "Correo electrónico o contraseña inválidos"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "totalUsers": "Total de Usuarios",
+    "totalServices": "Total de Servicios",
+    "totalBookings": "Total de Reservas",
+    "recentActivity": "Actividad Reciente"
+  },
+  "users": {
+    "title": "Usuarios",
+    "create": "Crear Usuario",
+    "edit": "Editar Usuario",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo electrónico",
+    "username": "Nombre de usuario",
+    "preferredLanguage": "Idioma preferido",
+    "roles": "Roles",
+    "roles.admin": "Administrador",
+    "roles.moderator": "Moderador",
+    "roles.helper": "Ayudante",
+    "roles.needer": "Solicitante",
+    "comingSoon": "¡Esta función estará disponible pronto!",
+    "createSuccess": "Usuario creado exitosamente",
+    "createError": "Error al crear el usuario",
+    "updateSuccess": "Usuario actualizado exitosamente",
+    "updateError": "Error al actualizar el usuario",
+    "deleteSuccess": "Usuario eliminado exitosamente",
+    "deleteError": "Error al eliminar el usuario"
+  },
+  "services": {
+    "title": "Servicios",
+    "comingSoon": "¡Esta función estará disponible pronto!"
+  },
+  "bookings": {
+    "title": "Reservas",
+    "comingSoon": "¡Esta función estará disponible pronto!"
+  },
+  "reviews": {
+    "title": "Reseñas",
+    "comingSoon": "¡Esta función estará disponible pronto!"
+  },
+  "payments": {
+    "title": "Pagos",
+    "comingSoon": "¡Esta función estará disponible pronto!"
+  },
+  "settings": {
+    "title": "Configuración",
+    "comingSoon": "¡Esta función estará disponible pronto!"
+  },
+  "notFound": {
+    "title": "Página No Encontrada",
+    "message": "La página que está buscando no existe o ha sido movida.",
+    "backToHome": "Volver al Inicio"
+  },
+  "accessibility": {
+    "title": "Opciones de accesibilidad",
+    "highContrast": "Modo de alto contraste",
+    "largeText": "Modo de texto grande",
+    "screenReader": "Lector de pantalla",
+    "keyboardNavigation": "Navegación por teclado"
+  }
+} 

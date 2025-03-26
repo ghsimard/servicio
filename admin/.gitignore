@@ -9,8 +9,8 @@ node_modules/
 # Production
 /build
 /dist
-/admin/frontend/dist
-/admin/backend/dist
+/frontend/dist
+/backend/dist
 
 # Environment files
 .env
@@ -32,10 +32,6 @@ logs
 *.swp
 *.swo
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # TypeScript
 *.tsbuildinfo
@@ -55,20 +51,38 @@ logs
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
 # Prisma
-/prisma/*.db
-/prisma/migrations/
+/backend/prisma/*.db
+/backend/prisma/migrations/
 
 # Database files
 *.sql
 *.dump
 
 # Debug
-.debug/ 
+.debug/
+
+# Frontend specific
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Backend specific
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+
+# Build outputs
+frontend/build/
+frontend/dist/
+backend/dist/
+backend/build/
+
+# Cache
+.cache/
+.npm/
+.eslintcache 

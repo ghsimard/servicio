@@ -1,0 +1,81 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions",
+    "confirmDelete": "Are you sure you want to delete this item?"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Login",
+    "loginError": "Invalid email or password"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalUsers": "Total Users",
+    "totalServices": "Total Services",
+    "totalBookings": "Total Bookings",
+    "recentActivity": "Recent Activity"
+  },
+  "users": {
+    "title": "Users",
+    "create": "Create User",
+    "edit": "Edit User",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "username": "Username",
+    "preferredLanguage": "Preferred Language",
+    "roles": "Roles",
+    "roles.admin": "Admin",
+    "roles.moderator": "Moderator",
+    "roles.helper": "Helper",
+    "roles.needer": "Needer",
+    "comingSoon": "This feature is coming soon!",
+    "createSuccess": "User created successfully",
+    "createError": "Error creating user",
+    "updateSuccess": "User updated successfully",
+    "updateError": "Error updating user",
+    "deleteSuccess": "User deleted successfully",
+    "deleteError": "Failed to delete user"
+  },
+  "services": {
+    "title": "Services",
+    "comingSoon": "This feature is coming soon!"
+  },
+  "bookings": {
+    "title": "Bookings",
+    "comingSoon": "This feature is coming soon!"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "comingSoon": "This feature is coming soon!"
+  },
+  "payments": {
+    "title": "Payments",
+    "comingSoon": "This feature is coming soon!"
+  },
+  "settings": {
+    "title": "Settings",
+    "comingSoon": "This feature is coming soon!"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "backToHome": "Back to Home"
+  },
+  "accessibility": {
+    "title": "Accessibility Options",
+    "highContrast": "High Contrast Mode",
+    "largeText": "Large Text Mode",
+    "screenReader": "Screen Reader",
+    "keyboardNavigation": "Keyboard Navigation"
+  }
+} 
