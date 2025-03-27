@@ -13,7 +13,7 @@ model User {
   lastname                                                     String?                    @db.VarChar(100)
   lastname2                                                    String?                    @db.VarChar(100)
   dob                                                          DateTime?                  @db.Date
-  username                                                     String                     @db.VarChar(50)
+  username                                                     String                     @unique @db.VarChar(50)
   email                                                        String                     @unique @db.VarChar(255)
   passwordHash                                                 String?                    @map("password_hash") @db.VarChar(255)
   preferred_language                                           String?                    @default("en") @db.VarChar(10)
@@ -47,14 +47,14 @@ model User {
   subscriptions_subscriptions_needer_idTousers                 subscriptions[]            @relation("subscriptions_needer_idTousers")
   transactions_transactions_helper_idTousers                   Transaction[]              @relation("transactions_helper_idTousers")
   transactions_transactions_needer_idTousers                   Transaction[]              @relation("transactions_needer_idTousers")
+  user_analytics                                               user_analytics[]
   user_contacts                                                user_contacts[]
   user_roles                                                   user_roles[]
+  user_sessions                                                user_sessions[]
   companies                                                    companies?                 @relation(fields: [company_id], references: [company_id], onDelete: NoAction, onUpdate: NoAction)
   addresses                                                    Address?                   @relation(fields: [primary_address_id], references: [addressId], onDelete: NoAction, onUpdate: NoAction)
   subscriptions_users_subscription_idTosubscriptions           subscriptions?             @relation("users_subscription_idTosubscriptions", fields: [subscription_id], references: [subscription_id], onDelete: NoAction, onUpdate: NoAction)
   verification_tokens                                          verification_tokens[]
-  user_sessions                                                user_sessions[]
-  user_analytics                                               user_analytics[]
 
   @@index([company_id], map: "idx_users_company_id")
   @@index([email], map: "idx_users_email")
@@ -629,22 +629,22 @@ model verification_tokens {
 }
 
 model user_sessions {
-  session_id    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String   @db.Uuid
-  session_type  String   @db.VarChar(20) // 'admin' or 'main'
-  ip_address    String?
-  user_agent    String?
-  device_type   String?
-  browser       String?
-  os            String?
-  login_time    DateTime @default(now()) @db.Timestamp(6)
-  logout_time   DateTime?
-  duration      Int?     // in seconds
-  is_active     Boolean? @default(true)
-  created_at    DateTime @default(now()) @db.Timestamp(6)
-  updated_at    DateTime @default(now()) @updatedAt
-  users         User     @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
-  analytics     user_analytics[]
+  session_id   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String           @db.Uuid
+  ip_address   String?
+  user_agent   String?
+  device_type  String?
+  browser      String?
+  os           String?
+  login_time   DateTime         @default(now()) @db.Timestamp(6)
+  logout_time  DateTime?
+  duration     Int?
+  is_active    Boolean?         @default(true)
+  created_at   DateTime         @default(now()) @db.Timestamp(6)
+  updated_at   DateTime         @default(now()) @updatedAt
+  session_type String           @db.VarChar(20)
+  analytics    user_analytics[]
+  users        User             @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([user_id])
   @@index([session_type])
@@ -653,17 +653,17 @@ model user_sessions {
 }
 
 model user_analytics {
-  analytics_id  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String    @db.Uuid
-  session_id    String    @db.Uuid
-  page_visited  String    @db.VarChar(255)
-  action_type   String    @db.VarChar(50)
-  action_data   Json?
-  timestamp     DateTime? @default(now()) @db.Timestamp(6)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
-  users         User      @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
-  sessions      user_sessions @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction)
+  analytics_id String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String        @db.Uuid
+  session_id   String        @db.Uuid
+  page_visited String        @db.VarChar(255)
+  action_type  String        @db.VarChar(50)
+  action_data  Json?
+  timestamp    DateTime?     @default(now()) @db.Timestamp(6)
+  created_at   DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?     @default(now()) @db.Timestamp(6)
+  sessions     user_sessions @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction)
+  users        User          @relation(fields: [user_id], references: [userId], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_user_analytics_user_id")
   @@index([session_id], map: "idx_user_analytics_session_id")

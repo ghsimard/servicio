@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       const response = await axios.post('http://localhost:3003/auth/login', {
-        email,
+        emailOrUsername: email,
         password
       });
       const { access_token, session_id, user } = response.data;

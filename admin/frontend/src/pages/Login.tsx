@@ -82,13 +82,13 @@ const Login: React.FC = () => {
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label={t('auth.email')}
-              type="email"
+              label={t('auth.emailOrUsername')}
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               margin="normal"
               required
-              autoComplete="email"
+              autoComplete="username"
               disabled={loading}
             />
             <TextField

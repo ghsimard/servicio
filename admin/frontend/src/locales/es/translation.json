@@ -13,6 +13,7 @@
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión",
     "email": "Correo Electrónico",
+    "emailOrUsername": "Correo Electrónico/Nombre de Usuario",
     "password": "Contraseña",
     "loginButton": "Iniciar Sesión",
     "loginError": "Correo electrónico o contraseña inválidos"

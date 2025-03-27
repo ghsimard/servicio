@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { Request } from 'express';
 import * as bcrypt from 'bcrypt';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -13,19 +14,56 @@ export class AuthService {
     private sessionsService: SessionsService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        user_roles: true,
-      },
-    });
-
-    if (user && await bcrypt.compare(password, user.passwordHash)) {
-      const { passwordHash, ...result } = user;
-      return result;
+  async validateUser(emailOrUsername: string, password: string): Promise<any> {
+    let user = null;
+    
+    // First try to find by email (case insensitive)
+    try {
+      user = await this.prisma.user.findFirst({
+        where: { 
+          email: { 
+            mode: 'insensitive',
+            equals: emailOrUsername 
+          } 
+        },
+        include: {
+          user_roles: true,
+        },
+      });
+    } catch (error) {
+      console.error('Error finding user by email:', error);
     }
-    return null;
+
+    // If not found by email, try by username (case insensitive)
+    if (!user) {
+      try {
+        user = await this.prisma.user.findFirst({
+          where: { 
+            username: { 
+              mode: 'insensitive',
+              equals: emailOrUsername 
+            } 
+          },
+          include: {
+            user_roles: true,
+          },
+        });
+      } catch (error) {
+        console.error('Error finding user by username:', error);
+      }
+    }
+
+    if (!user) {
+      return null;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash || '');
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    const { passwordHash, ...result } = user;
+    return result;
   }
 
   async login(user: any, req: Request) {

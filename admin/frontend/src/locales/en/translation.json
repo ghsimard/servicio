@@ -13,6 +13,7 @@
     "login": "Login",
     "logout": "Logout",
     "email": "Email",
+    "emailOrUsername": "Email/Username",
     "password": "Password",
     "loginButton": "Login",
     "loginError": "Invalid email or password"

@@ -17,6 +17,7 @@
     "login": "Connexion",
     "logout": "Déconnexion",
     "email": "Email",
+    "emailOrUsername": "Email/Nom d'utilisateur",
     "password": "Mot de passe",
     "forgotPassword": "Mot de passe oublié ?",
     "resetPassword": "Réinitialiser le mot de passe",

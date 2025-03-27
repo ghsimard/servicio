@@ -20,7 +20,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Req() req: ExpressRequest) {
     const user = await this.authService.validateUser(
-      loginDto.email,
+      loginDto.emailOrUsername,
       loginDto.password,
     );
     if (!user) {

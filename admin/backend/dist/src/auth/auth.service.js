@@ -21,18 +21,51 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
         this.sessionsService = sessionsService;
     }
-    async validateUser(email, password) {
-        const user = await this.prisma.user.findUnique({
-            where: { email },
-            include: {
-                user_roles: true,
-            },
-        });
-        if (user && await bcrypt.compare(password, user.passwordHash)) {
-            const { passwordHash, ...result } = user;
-            return result;
+    async validateUser(emailOrUsername, password) {
+        let user = null;
+        try {
+            user = await this.prisma.user.findFirst({
+                where: {
+                    email: {
+                        mode: 'insensitive',
+                        equals: emailOrUsername
+                    }
+                },
+                include: {
+                    user_roles: true,
+                },
+            });
         }
-        return null;
+        catch (error) {
+            console.error('Error finding user by email:', error);
+        }
+        if (!user) {
+            try {
+                user = await this.prisma.user.findFirst({
+                    where: {
+                        username: {
+                            mode: 'insensitive',
+                            equals: emailOrUsername
+                        }
+                    },
+                    include: {
+                        user_roles: true,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error finding user by username:', error);
+            }
+        }
+        if (!user) {
+            return null;
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.passwordHash || '');
+        if (!isPasswordValid) {
+            return null;
+        }
+        const { passwordHash, ...result } = user;
+        return result;
     }
     async login(user, req) {
         const payload = { email: user.email, sub: user.userId, roles: user.user_roles.map(ur => ur.role) };
