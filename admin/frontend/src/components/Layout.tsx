@@ -28,7 +28,7 @@ import {
   Translate as TranslateIcon,
   History as HistoryIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 import { useTranslation } from 'react-i18next';
 

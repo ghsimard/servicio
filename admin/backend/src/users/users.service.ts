@@ -192,8 +192,8 @@ export class UsersService {
       'users',
       'update',
       user.userId,
-      oldData,
       newData,
+      oldData,
       (req?.user as any)?.sub,
     );
 

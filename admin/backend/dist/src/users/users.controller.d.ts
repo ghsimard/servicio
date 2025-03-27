@@ -4,27 +4,27 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     findAll(): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
         userId: string;
         firstname: string;
         lastname: string;
         username: string;
         email: string;
         preferred_language: string;
+        createdAt: Date;
+        updatedAt: Date;
         user_roles: {
             role: import(".prisma/client").$Enums.role_type;
         }[];
     }[]>;
     findOne(id: string): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
         userId: string;
         firstname: string;
         lastname: string;
         username: string;
         email: string;
         preferred_language: string;
+        createdAt: Date;
+        updatedAt: Date;
         user_roles: {
             role: import(".prisma/client").$Enums.role_type;
         }[];
@@ -38,14 +38,14 @@ export declare class UsersController {
         preferred_language?: string;
         roles?: string[];
     }, req: Request): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
         userId: string;
         firstname: string;
         lastname: string;
         username: string;
         email: string;
         preferred_language: string;
+        createdAt: Date;
+        updatedAt: Date;
         user_roles: {
             role: import(".prisma/client").$Enums.role_type;
         }[];
@@ -59,21 +59,19 @@ export declare class UsersController {
         preferred_language?: string;
         roles?: string[];
     }, req: Request): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
         userId: string;
         firstname: string;
         lastname: string;
         username: string;
         email: string;
         preferred_language: string;
+        createdAt: Date;
+        updatedAt: Date;
         user_roles: {
             role: import(".prisma/client").$Enums.role_type;
         }[];
     }>;
     remove(id: string, req: Request): Promise<{
-        createdAt: Date | null;
-        updatedAt: Date | null;
         userId: string;
         firstname: string | null;
         lastname: string | null;
@@ -89,6 +87,8 @@ export declare class UsersController {
         primary_address_id: string | null;
         certification_status: import(".prisma/client").$Enums.certification_status_type | null;
         last_certified_at: Date | null;
+        createdAt: Date | null;
+        updatedAt: Date | null;
         gender: string | null;
         title: string | null;
     }>;

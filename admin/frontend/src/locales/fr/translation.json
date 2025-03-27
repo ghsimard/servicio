@@ -16,7 +16,7 @@
   "auth": {
     "login": "Connexion",
     "logout": "Déconnexion",
-    "email": "Adresse e-mail",
+    "email": "Email",
     "password": "Mot de passe",
     "forgotPassword": "Mot de passe oublié ?",
     "resetPassword": "Réinitialiser le mot de passe",
@@ -28,11 +28,11 @@
     "title": "Tableau de bord",
     "overview": "Vue d'ensemble",
     "statistics": "Statistiques",
-    "recentActivity": "Activité récente",
+    "recentActivity": "Activité Récente",
     "noRecentActivity": "Aucune activité récente",
-    "totalUsers": "Total utilisateurs",
-    "totalServices": "Total services",
-    "totalBookings": "Total réservations"
+    "totalUsers": "Total Utilisateurs",
+    "totalServices": "Total Services",
+    "totalBookings": "Total Réservations"
   },
   "users": {
     "title": "Utilisateurs",
@@ -42,7 +42,7 @@
     "delete": "Supprimer l'utilisateur",
     "firstName": "Prénom",
     "lastName": "Nom",
-    "email": "Adresse e-mail",
+    "email": "Email",
     "username": "Nom d'utilisateur",
     "preferredLanguage": "Langue préférée",
     "role": "Rôle",
@@ -50,13 +50,13 @@
     "roles": "Rôles",
     "roles.admin": "Administrateur",
     "roles.moderator": "Modérateur",
-    "roles.helper": "Assistant",
+    "roles.helper": "Aide",
     "roles.needer": "Demandeur",
     "comingSoon": "Cette fonctionnalité sera bientôt disponible !",
     "createSuccess": "Utilisateur créé avec succès",
-    "createError": "Échec de la création de l'utilisateur",
+    "createError": "Erreur lors de la création de l'utilisateur",
     "updateSuccess": "Utilisateur mis à jour avec succès",
-    "updateError": "Échec de la mise à jour de l'utilisateur",
+    "updateError": "Erreur lors de la mise à jour de l'utilisateur",
     "deleteSuccess": "Utilisateur supprimé avec succès",
     "deleteError": "Échec de la suppression de l'utilisateur"
   },
@@ -113,19 +113,23 @@
     "comingSoon": "Cette fonctionnalité sera bientôt disponible !"
   },
   "notFound": {
-    "title": "Page non trouvée",
+    "title": "Page Non Trouvée",
     "message": "La page que vous recherchez n'existe pas ou a été déplacée.",
     "backToHome": "Retour à l'accueil"
   },
   "logs": {
-    "title": "Journaux de Base de Données",
-    "all": "Tous les Journaux",
+    "title": "Journaux Système",
     "timestamp": "Date et Heure",
     "table": "Table",
     "action": "Action",
     "user": "Utilisateur",
+    "role": "Rôle",
     "details": "Détails",
-    "refresh": "Actualiser les Journaux",
-    "filter": "Filtrer les Journaux"
+    "refresh": "Actualiser",
+    "filter": "Filtrer",
+    "all": "Tout",
+    "deleteAll": "Supprimer Tous les Journaux",
+    "deleteAllConfirm": "Supprimer Tous les Journaux",
+    "deleteAllWarning": "Êtes-vous sûr de vouloir supprimer tous les journaux ? Cette action ne peut pas être annulée."
   }
 } 

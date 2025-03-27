@@ -32,7 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useSnackbar } from '../contexts/SnackbarContext';
 
 interface User {
@@ -261,8 +261,8 @@ const Users: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>{t('users.email')}</TableCell>
-                <TableCell>{t('users.firstname')}</TableCell>
-                <TableCell>{t('users.lastname')}</TableCell>
+                <TableCell>{t('users.firstName')}</TableCell>
+                <TableCell>{t('users.lastName')}</TableCell>
                 <TableCell>{t('users.username')}</TableCell>
                 <TableCell>{t('users.roles')}</TableCell>
                 <TableCell>{t('common.actions')}</TableCell>

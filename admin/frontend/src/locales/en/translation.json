@@ -34,15 +34,15 @@
     "username": "Username",
     "preferredLanguage": "Preferred Language",
     "roles": "Roles",
-    "roles.admin": "Admin",
+    "roles.admin": "Administrator",
     "roles.moderator": "Moderator",
     "roles.helper": "Helper",
     "roles.needer": "Needer",
-    "comingSoon": "This feature is coming soon!",
+    "comingSoon": "This feature will be available soon!",
     "createSuccess": "User created successfully",
-    "createError": "Error creating user",
+    "createError": "Failed to create user",
     "updateSuccess": "User updated successfully",
-    "updateError": "Error updating user",
+    "updateError": "Failed to update user",
     "deleteSuccess": "User deleted successfully",
     "deleteError": "Failed to delete user"
   },
@@ -79,15 +79,18 @@
     "keyboardNavigation": "Keyboard Navigation"
   },
   "logs": {
-    "title": "Database Logs",
-    "all": "All Logs",
+    "title": "System Logs",
     "timestamp": "Timestamp",
     "table": "Table",
     "action": "Action",
     "user": "User",
     "role": "Role",
     "details": "Details",
-    "refresh": "Refresh Logs",
-    "filter": "Filter Logs"
+    "refresh": "Refresh",
+    "filter": "Filter",
+    "all": "All",
+    "deleteAll": "Delete All Logs",
+    "deleteAllConfirm": "Delete All Logs",
+    "deleteAllWarning": "Are you sure you want to delete all logs? This action cannot be undone."
   }
 } 

@@ -1,6 +1,7 @@
-import { Controller, Get, Query, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Query, HttpException, HttpStatus, Logger, Param, Delete, UseGuards } from '@nestjs/common';
 import { LoggingService } from './logging.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('logs')
 @Controller('logs')
@@ -39,10 +40,10 @@ export class LoggingController {
     }
   }
 
-  @Get('by-user')
+  @Get('user/:userId')
   @ApiOperation({ summary: 'Get logs by user ID' })
   @ApiQuery({ name: 'userId', required: true, description: 'ID of the user to get logs for' })
-  async getLogsByUser(@Query('userId') userId: string) {
+  async getLogsByUser(@Param('userId') userId: string) {
     try {
       return await this.loggingService.getLogsByUser(userId);
     } catch (error) {
@@ -52,5 +53,11 @@ export class LoggingController {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  @Delete('all')
+  @UseGuards(JwtAuthGuard)
+  async deleteAllLogs() {
+    return this.loggingService.deleteAllLogs();
   }
 } 

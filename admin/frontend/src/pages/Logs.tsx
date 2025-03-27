@@ -14,13 +14,21 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
   FilterList as FilterIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 
 interface Log {
   log_id: string;
@@ -63,10 +71,12 @@ function TabPanel(props: TabPanelProps) {
 
 const Logs: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const fetchLogs = async () => {
     try {
@@ -85,6 +95,19 @@ const Logs: React.FC = () => {
   useEffect(() => {
     fetchLogs();
   }, []);
+
+  const handleDeleteAllLogs = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete('http://localhost:3003/logs/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLogs([]);
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('Error deleting logs:', error);
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -122,6 +145,15 @@ const Logs: React.FC = () => {
           <Tooltip title={t('logs.filter')}>
             <IconButton>
               <FilterIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('logs.deleteAll')}>
+            <IconButton 
+              color="error" 
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={loading}
+            >
+              <DeleteIcon />
             </IconButton>
           </Tooltip>
         </Box>
@@ -232,6 +264,23 @@ const Logs: React.FC = () => {
           </TabPanel>
         ))}
       </Paper>
+
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>{t('logs.deleteAllConfirm')}</DialogTitle>
+        <DialogContent>
+          <Typography>
+            {t('logs.deleteAllWarning')}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={handleDeleteAllLogs} color="error" variant="contained">
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

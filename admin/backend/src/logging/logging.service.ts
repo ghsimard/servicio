@@ -10,65 +10,52 @@ export class LoggingService {
   constructor(private prisma: PrismaService) {}
 
   private getChangedValues(oldData: any, newData: any): any {
-    if (!oldData || !newData) return newData;
-
     const changes: any = {};
-    
-    // Log all fields from newData that are different from oldData
-    for (const key in newData) {
-      // Skip only system fields
+    const allKeys = new Set([...Object.keys(oldData || {}), ...Object.keys(newData || {})]);
+
+    for (const key of allKeys) {
+      // Skip system fields
       if (key === 'createdAt' || key === 'updatedAt') {
         continue;
       }
 
-      const oldValue = oldData[key];
-      const newValue = newData[key];
+      const oldValue = oldData?.[key];
+      const newValue = newData?.[key];
 
       // Handle arrays (like roles)
-      if (Array.isArray(newValue)) {
-        const oldArray = oldValue || [];
-        if (JSON.stringify(oldArray) !== JSON.stringify(newValue)) {
-          changes[key] = newValue;
-          this.logger.debug(`Array field ${key} changed:`, {
-            old: oldArray,
-            new: newValue
-          });
+      if (Array.isArray(oldValue) || Array.isArray(newValue)) {
+        const oldArray = Array.isArray(oldValue) ? oldValue : [];
+        const newArray = Array.isArray(newValue) ? newValue : [];
+        
+        // Compare arrays by their sorted stringified values to handle order differences
+        const oldArrayStr = JSON.stringify([...oldArray].sort());
+        const newArrayStr = JSON.stringify([...newArray].sort());
+        
+        if (oldArrayStr !== newArrayStr) {
+          changes[key] = newArray;
         }
-        continue;
       }
-      
       // Handle objects
-      if (typeof newValue === 'object' && newValue !== null) {
-        const oldObject = oldValue || {};
-        if (JSON.stringify(oldObject) !== JSON.stringify(newValue)) {
+      else if (typeof oldValue === 'object' && oldValue !== null && 
+               typeof newValue === 'object' && newValue !== null) {
+        if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
           changes[key] = newValue;
-          this.logger.debug(`Object field ${key} changed:`, {
-            old: oldObject,
-            new: newValue
-          });
         }
-        continue;
       }
-
       // Handle primitive values
-      if (oldValue !== newValue) {
+      else if (oldValue !== newValue) {
         changes[key] = newValue;
-        this.logger.debug(`Primitive field ${key} changed:`, {
-          old: oldValue,
-          new: newValue
-        });
       }
-    }
-
-    // Also check for deleted fields
-    for (const key in oldData) {
-      if (!(key in newData) && key !== 'createdAt' && key !== 'updatedAt') {
+      // Handle deleted fields
+      else if (key in oldData && !(key in newData)) {
         changes[key] = null;
-        this.logger.debug(`Field ${key} was deleted`);
+      }
+      // Handle new fields
+      else if (!(key in oldData) && key in newData) {
+        changes[key] = newValue;
       }
     }
 
-    this.logger.debug('Final changes object:', changes);
     return Object.keys(changes).length > 0 ? changes : undefined;
   }
 
@@ -103,7 +90,12 @@ export class LoggingService {
           if (changes) {
             // Include all changed fields in the details
             for (const key in changes) {
-              logDetails[key] = changes[key];
+              // Format array values as comma-separated strings
+              if (Array.isArray(changes[key])) {
+                logDetails[key] = changes[key].join(', ');
+              } else {
+                logDetails[key] = changes[key];
+              }
             }
           }
           break;
@@ -117,12 +109,41 @@ export class LoggingService {
         this.logger.debug('Details:', logDetails);
         this.logger.debug('Operation Details:', operationDetails);
 
+        // Format the details as a string without curly braces
+        const formattedDetails = Object.entries(logDetails)
+          .map(([key, value]) => {
+            // Format field names
+            let formattedKey = key;
+            switch (key) {
+              case 'firstname':
+                formattedKey = 'FirstName';
+                break;
+              case 'lastname':
+                formattedKey = 'LastName';
+                break;
+              case 'preferred_language':
+                formattedKey = 'Language';
+                break;
+              case 'user_roles':
+                formattedKey = 'Roles';
+                break;
+              default:
+                // Convert snake_case to Title Case
+                formattedKey = key
+                  .split('_')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+            }
+            return `${formattedKey}: ${value}`;
+          })
+          .join(', ');
+
         const logEntry = await this.prisma.database_logs.create({
           data: {
             table_name: table,
             action: action,
             record_id: recordId,
-            details: logDetails,
+            details: formattedDetails,
             operation_details: operationDetails,
             user_id: userId,
           },
@@ -224,6 +245,16 @@ export class LoggingService {
       });
     } catch (error) {
       this.logger.error(`Error fetching logs by user: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async deleteAllLogs() {
+    try {
+      await this.prisma.database_logs.deleteMany({});
+      this.logger.debug('All logs deleted successfully');
+    } catch (error) {
+      this.logger.error(`Error deleting all logs: ${error.message}`);
       throw error;
     }
   }

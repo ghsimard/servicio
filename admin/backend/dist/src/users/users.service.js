@@ -169,7 +169,7 @@ let UsersService = class UsersService {
             preferred_language: oldUser.preferred_language,
             roles: oldRoles,
         };
-        await this.loggingService.logDatabaseAction('users', 'update', user.userId, oldData, newData, req?.user?.sub);
+        await this.loggingService.logDatabaseAction('users', 'update', user.userId, newData, oldData, req?.user?.sub);
         return user;
     }
     async remove(id, req) {

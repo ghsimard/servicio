@@ -30,9 +30,9 @@
     "edit": "Editar Usuario",
     "firstName": "Nombre",
     "lastName": "Apellido",
-    "email": "Correo electrónico",
-    "username": "Nombre de usuario",
-    "preferredLanguage": "Idioma preferido",
+    "email": "Correo Electrónico",
+    "username": "Nombre de Usuario",
+    "preferredLanguage": "Idioma Preferido",
     "roles": "Roles",
     "roles.admin": "Administrador",
     "roles.moderator": "Moderador",
@@ -79,15 +79,18 @@
     "keyboardNavigation": "Navegación por teclado"
   },
   "logs": {
-    "title": "Registros de Base de Datos",
-    "all": "Todos los Registros",
+    "title": "Registros del Sistema",
     "timestamp": "Fecha y Hora",
     "table": "Tabla",
     "action": "Acción",
     "user": "Usuario",
     "role": "Rol",
     "details": "Detalles",
-    "refresh": "Actualizar Registros",
-    "filter": "Filtrar Registros"
+    "refresh": "Actualizar",
+    "filter": "Filtrar",
+    "all": "Todos",
+    "deleteAll": "Eliminar Todos los Registros",
+    "deleteAllConfirm": "Eliminar Todos los Registros",
+    "deleteAllWarning": "¿Está seguro de que desea eliminar todos los registros? Esta acción no se puede deshacer."
   }
 } 

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import i18next from 'i18next';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   user_id: string;
@@ -21,12 +22,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const updateLanguage = (preferredLanguage: string) => {
     // Map database language codes to i18n language codes
@@ -63,12 +65,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (err) {
       console.error('Auth check error:', err);
-      localStorage.removeItem('token');
-      setUser(null);
+      // If the error is due to token expiration or invalid token
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        localStorage.removeItem('token');
+        setUser(null);
+        navigate('/login');
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // Add axios interceptor to handle 401 responses
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          setUser(null);
+          navigate('/login');
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [navigate]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -121,12 +146,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 }; 
