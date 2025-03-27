@@ -17,17 +17,25 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const users_service_1 = require("../users/users.service");
+const login_dto_1 = require("./dto/login.dto");
 let AuthController = class AuthController {
     constructor(authService, usersService) {
         this.authService = authService;
         this.usersService = usersService;
     }
-    async login(loginDto) {
+    async login(loginDto, req) {
         const user = await this.authService.validateUser(loginDto.email, loginDto.password);
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        return this.authService.login(user);
+        return this.authService.login(user, req);
+    }
+    async logout(req) {
+        const sessionId = req.headers['x-session-id'];
+        if (sessionId) {
+            await this.authService.logout(req.user.userId, sessionId);
+        }
+        return { message: 'Logged out successfully' };
     }
     async getProfile(req) {
         const user = await this.usersService.findOne(req.user.sub);
@@ -41,10 +49,19 @@ exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [login_dto_1.LoginDto, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "login", null);
+], AuthController.prototype, "logout", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('me'),

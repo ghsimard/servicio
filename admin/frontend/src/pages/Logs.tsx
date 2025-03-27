@@ -148,13 +148,15 @@ const Logs: React.FC = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title={t('logs.deleteAll')}>
-            <IconButton 
-              color="error" 
-              onClick={() => setDeleteDialogOpen(true)}
-              disabled={loading}
-            >
-              <DeleteIcon />
-            </IconButton>
+            <span>
+              <IconButton 
+                color="error" 
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={loading}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </span>
           </Tooltip>
         </Box>
       </Box>

@@ -1,39 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
+import { SessionsService } from '../sessions/sessions.service';
+import { Request } from 'express';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
+    private prisma: PrismaService,
     private jwtService: JwtService,
+    private sessionsService: SessionsService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
-    if (user && user.passwordHash) {
-      const isMatch = await bcrypt.compare(password, user.passwordHash);
-      if (isMatch) {
-        const { passwordHash, ...result } = user;
-        return { ...result, userId: user.userId };
-      }
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        user_roles: true,
+      },
+    });
+
+    if (user && await bcrypt.compare(password, user.passwordHash)) {
+      const { passwordHash, ...result } = user;
+      return result;
     }
     return null;
   }
 
-  async login(user: any) {
-    const payload = { email: user.email, sub: user.userId };
+  async login(user: any, req: Request) {
+    const payload = { email: user.email, sub: user.userId, roles: user.user_roles.map(ur => ur.role) };
+    const token = this.jwtService.sign(payload);
+    
+    // Create session
+    await this.sessionsService.createSession(user.userId, req, 'admin');
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
       user: {
-        userId: user.userId,
-        firstname: user.firstname,
-        lastname: user.lastname,
+        id: user.userId,
         email: user.email,
-        username: user.username,
-        preferred_language: user.preferred_language,
+        roles: user.user_roles.map(ur => ur.role),
       },
     };
+  }
+
+  async logout(userId: string, sessionId: string) {
+    await this.sessionsService.endSession(userId, sessionId);
   }
 } 

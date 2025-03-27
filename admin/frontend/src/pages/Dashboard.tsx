@@ -23,6 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import SessionStats from '../components/dashboard/SessionStats';
 
 interface DashboardStats {
   totalUsers: number;
@@ -228,6 +229,12 @@ const Dashboard: React.FC = () => {
           </List>
         </Card>
       </Box>
+
+      {/* Session Statistics */}
+      <div style={{ marginTop: '24px' }}>
+        <h2>Session Statistics</h2>
+        <SessionStats />
+      </div>
     </Box>
   );
 };

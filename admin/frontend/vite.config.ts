@@ -9,7 +9,23 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3003',
         changeOrigin: true,
+        secure: false,
       },
+      '/sessions': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/auth': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/users': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        secure: false,
+      }
     },
   },
 }); 

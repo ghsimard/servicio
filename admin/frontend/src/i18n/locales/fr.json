@@ -1,0 +1,15 @@
+{
+  "sessions": {
+    "totalSessions": "Sessions Totales",
+    "activeSessions": "Sessions Actives",
+    "deviceTypes": "Types d'Appareils",
+    "deviceDistribution": "Distribution des Appareils",
+    "browserDistribution": "Distribution des Navigateurs",
+    "activeUsers": "Utilisateurs Actifs",
+    "user": "Utilisateur",
+    "device": "Appareil",
+    "browser": "Navigateur",
+    "os": "Système d'Exploitation",
+    "loginTime": "Heure de Connexion"
+  }
+} 

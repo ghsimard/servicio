@@ -10,6 +10,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { UserContextMiddleware } from './middleware/user-context.middleware';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    SessionsModule,
   ],
 })
 export class AppModule implements NestModule {

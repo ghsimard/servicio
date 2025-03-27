@@ -19,6 +19,7 @@ const transactions_module_1 = require("./transactions/transactions.module");
 const user_context_middleware_1 = require("./middleware/user-context.middleware");
 const jwt_1 = require("@nestjs/jwt");
 const config_2 = require("@nestjs/config");
+const sessions_module_1 = require("./sessions/sessions.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(user_context_middleware_1.UserContextMiddleware).forRoutes('*');
@@ -45,6 +46,7 @@ exports.AppModule = AppModule = __decorate([
                 }),
                 inject: [config_2.ConfigService],
             }),
+            sessions_module_1.SessionsModule,
         ],
     })
 ], AppModule);

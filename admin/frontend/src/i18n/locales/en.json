@@ -1,0 +1,20 @@
+{
+  "sessions": {
+    "totalSessions": "Total Sessions",
+    "activeSessions": "Active Sessions",
+    "deviceTypes": "Device Types",
+    "deviceDistribution": "Device Distribution",
+    "browserDistribution": "Browser Distribution",
+    "activeUsers": "Active Users",
+    "user": "User",
+    "device": "Device",
+    "browser": "Browser",
+    "os": "Operating System",
+    "loginTime": "Login Time",
+    "errorLoading": "Error loading session statistics. Please try again later."
+  },
+  "common": {
+    "loading": "Loading...",
+    "unauthorized": "You are not authorized. Please log in again."
+  }
+} 
