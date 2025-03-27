@@ -34,6 +34,23 @@
     "totalServices": "Total Services",
     "totalBookings": "Total Réservations"
   },
+  "analytics": {
+    "title": "Analytiques",
+    "overview": "Vue d'ensemble",
+    "userActivity": "Activité des Utilisateurs",
+    "recentActions": "Actions Récentes",
+    "pageViews": "Vues de Pages",
+    "actionTypes": "Types d'Actions",
+    "mostActiveUsers": "Utilisateurs les Plus Actifs",
+    "recentActivity": "Activité Récente",
+    "username": "Nom d'utilisateur",
+    "email": "Email",
+    "actions": "Actions",
+    "user": "Utilisateur",
+    "action": "Action",
+    "page": "Page",
+    "timestamp": "Horodatage"
+  },
   "users": {
     "title": "Utilisateurs",
     "list": "Liste des utilisateurs",

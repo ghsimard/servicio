@@ -10,6 +10,7 @@ export default defineConfig({
         target: 'http://localhost:3003',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/sessions': {
         target: 'http://localhost:3003',
@@ -22,6 +23,11 @@ export default defineConfig({
         secure: false,
       },
       '/users': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/analytics': {
         target: 'http://localhost:3003',
         changeOrigin: true,
         secure: false,

@@ -62,6 +62,23 @@
     "title": "Payments",
     "comingSoon": "This feature is coming soon!"
   },
+  "analytics": {
+    "title": "Analytics",
+    "overview": "Overview",
+    "userActivity": "User Activity",
+    "recentActions": "Recent Actions",
+    "pageViews": "Page Views",
+    "actionTypes": "Action Types",
+    "mostActiveUsers": "Most Active Users",
+    "recentActivity": "Recent Activity",
+    "username": "Username",
+    "email": "Email",
+    "actions": "Actions",
+    "user": "User",
+    "action": "Action",
+    "page": "Page",
+    "timestamp": "Timestamp"
+  },
   "settings": {
     "title": "Settings",
     "comingSoon": "This feature is coming soon!"

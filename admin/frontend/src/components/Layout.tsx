@@ -27,6 +27,7 @@ import {
   AccessibilityNew as AccessibilityIcon,
   Translate as TranslateIcon,
   History as HistoryIcon,
+  BarChart as AnalyticsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { useAccessibility } from '../contexts/AccessibilityContext';
@@ -87,6 +88,7 @@ const Layout: React.FC = () => {
     { text: t('reviews.title'), icon: <ReviewIcon />, path: '/reviews' },
     { text: t('payments.title'), icon: <PaymentIcon />, path: '/payments' },
     { text: t('logs.title'), icon: <HistoryIcon />, path: '/logs' },
+    { text: t('analytics.title'), icon: <AnalyticsIcon />, path: '/analytics' },
     { text: t('settings.title'), icon: <SettingsIcon />, path: '/settings' },
   ];
 

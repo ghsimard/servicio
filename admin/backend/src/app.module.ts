@@ -11,6 +11,7 @@ import { UserContextMiddleware } from './middleware/user-context.middleware';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { SessionsModule } from './sessions/sessions.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SessionsModule } from './sessions/sessions.module';
       inject: [ConfigService],
     }),
     SessionsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule implements NestModule {
