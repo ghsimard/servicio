@@ -61,6 +61,8 @@ const SessionsTable: React.FC<SessionsTableProps> = ({
 
   // Get appropriate device icon
   const getDeviceIcon = (deviceType: string) => {
+    if (!deviceType) return <DeviceIcon />;
+    
     switch(deviceType.toLowerCase()) {
       case 'desktop':
         return <ComputerIcon />;

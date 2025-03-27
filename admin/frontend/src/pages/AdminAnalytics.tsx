@@ -18,23 +18,19 @@ import {
   Tab,
 } from '@mui/material';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import SourceBreakdown from '../components/analytics/SourceBreakdown';
 import SessionsTable from '../components/analytics/SessionsTable';
+import PageViewsChart from '../components/analytics/PageViewsChart';
 
 // Generate colors for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5DADE2', '#58D68D', '#F4D03F'];
@@ -129,83 +125,81 @@ const AdminAnalytics = () => {
       </Tabs>
 
       {activeTab === 0 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('analytics.pageViews', 'Page Views')}
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={pageViewsData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="views" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={8} lg={9}>
+                {analyticsData.topPages && (
+                  <PageViewsChart pageData={analyticsData.topPages} />
+                )}
+              </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('analytics.actionTypes', 'Action Types')}
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={actionTypeData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {actionTypeData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            {analyticsData.sourceCounts && (
-              <SourceBreakdown sourceData={analyticsData.sourceCounts} />
-            )}
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('analytics.activeSessions', 'Active Sessions Overview')}
-              </Typography>
-              <Box display="flex" justifyContent="space-around" mt={3}>
-                <Box textAlign="center">
-                  <Typography variant="h4">{sessions.filter(s => s.is_active).length}</Typography>
-                  <Typography variant="body2" color="textSecondary">Active Sessions</Typography>
-                </Box>
-                <Box textAlign="center">
-                  <Typography variant="h4">
-                    {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'main-app').length}
+              <Grid item xs={12} md={4} lg={3}>
+                <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('analytics.actionTypes', 'Action Types')}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">Main App</Typography>
-                </Box>
-                <Box textAlign="center">
-                  <Typography variant="h4">
-                    {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'admin-app').length}
+                  <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie
+                          data={actionTypeData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={70}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {actionTypeData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                {analyticsData.sourceCounts && (
+                  <SourceBreakdown sourceData={analyticsData.sourceCounts} />
+                )}
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h6" gutterBottom>
+                    {t('analytics.activeSessions', 'Active Sessions Overview')}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">Admin App</Typography>
-                </Box>
-              </Box>
-            </Paper>
+                  <Box display="flex" justifyContent="space-around" alignItems="center" sx={{ flexGrow: 1, py: 2 }}>
+                    <Box textAlign="center">
+                      <Typography variant="h4">{sessions.filter(s => s.is_active).length}</Typography>
+                      <Typography variant="body2" color="textSecondary">{t('analytics.activeSessions', 'Active Sessions')}</Typography>
+                    </Box>
+                    <Box textAlign="center">
+                      <Typography variant="h4">
+                        {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'main-app').length}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">{t('analytics.mainApp', 'Main App')}</Typography>
+                    </Box>
+                    <Box textAlign="center">
+                      <Typography variant="h4">
+                        {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'admin-app').length}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">{t('analytics.adminApp', 'Admin App')}</Typography>
+                    </Box>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
       )}

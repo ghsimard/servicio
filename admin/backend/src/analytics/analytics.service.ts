@@ -27,6 +27,39 @@ export class AnalyticsService {
     source: string = this.APP_SOURCE
   ) {
     try {
+      // Check if the session exists first
+      const session = await this.prisma.user_sessions.findUnique({
+        where: {
+          session_id: sessionId
+        }
+      });
+
+      // If session doesn't exist, log error and return without tracking
+      if (!session) {
+        this.logger.warn(`Session ${sessionId} does not exist for user ${userId}, cannot track action`);
+        
+        // Create a session on-the-fly if needed
+        try {
+          this.logger.debug(`Creating new session for user ${userId} since session ${sessionId} doesn't exist`);
+          const newSession = await this.prisma.user_sessions.create({
+            data: {
+              user_id: userId,
+              session_type: 'web',
+              // Use the user_agent field to store source info
+              user_agent: `Admin App (source:${source})`,
+              is_active: true
+            }
+          });
+          
+          // Use the new session ID for tracking
+          sessionId = newSession.session_id;
+          this.logger.debug(`Created new fallback session ${sessionId} for user ${userId}`);
+        } catch (sessionError) {
+          this.logger.error(`Failed to create fallback session: ${sessionError.message}`);
+          return; // Can't track without a valid session
+        }
+      }
+      
       // Add source to the action_data
       const actionDataWithSource = {
         ...actionData || {},

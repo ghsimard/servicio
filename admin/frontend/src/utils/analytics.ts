@@ -125,10 +125,19 @@ export const trackUserAction = async (
     let trackingSessionId = sessionId;
     if (!trackingSessionId) {
       console.warn('No active analytics session, initializing...');
-      trackingSessionId = await initializeAnalytics(userId);
-      if (!trackingSessionId) {
-        console.error('Failed to initialize session. Cannot track action.');
-        return;
+      try {
+        trackingSessionId = await initializeAnalytics(userId);
+        if (!trackingSessionId) {
+          console.error('Failed to initialize session. Cannot track action.');
+          // Create a simple session ID as fallback
+          trackingSessionId = `fallback-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          console.warn(`Using fallback session ID: ${trackingSessionId}`);
+          sessionId = trackingSessionId;
+          localStorage.setItem('analyticsSessionId', trackingSessionId);
+        }
+      } catch (initError) {
+        console.error('Error initializing analytics session:', initError);
+        return; // Don't try to track without a proper session
       }
     }
 
