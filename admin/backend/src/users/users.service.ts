@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoggingService } from '../logging/logging.service';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { Request } from 'express';
 
 @Injectable()
@@ -78,6 +79,7 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const { roles, ...userData } = data;
 
+    // Create the user
     const user = await this.prisma.user.create({
       data: {
         firstname: userData.firstname,
@@ -108,6 +110,28 @@ export class UsersService {
         },
       },
     });
+
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    
+    // Set token to expire in 1 year (long expiration since it's admin-created)
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    
+    // Create a verification token with type 'email_verified'
+    try {
+      const createdToken = await this.prisma.verification_tokens.create({
+        data: {
+          user_id: user.userId,
+          token: verificationToken,
+          type: 'email_verified',
+          expires_at: expiresAt,
+        },
+      });
+      console.log('Created verification token:', createdToken);
+    } catch (error) {
+      console.error('Error creating verification token:', error);
+    }
 
     await this.loggingService.logDatabaseAction(
       'users',

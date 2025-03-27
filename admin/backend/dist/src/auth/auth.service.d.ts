@@ -13,6 +13,10 @@ export declare class AuthService {
         user: {
             id: any;
             email: any;
+            firstname: any;
+            lastname: any;
+            username: any;
+            preferred_language: any;
             roles: any;
         };
     }>;

@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const logging_service_1 = require("../logging/logging.service");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 let UsersService = class UsersService {
     constructor(prisma, loggingService) {
         this.prisma = prisma;
@@ -112,6 +113,23 @@ let UsersService = class UsersService {
                 },
             },
         });
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        try {
+            const createdToken = await this.prisma.verification_tokens.create({
+                data: {
+                    user_id: user.userId,
+                    token: verificationToken,
+                    type: 'email_verified',
+                    expires_at: expiresAt,
+                },
+            });
+            console.log('Created verification token:', createdToken);
+        }
+        catch (error) {
+            console.error('Error creating verification token:', error);
+        }
         await this.loggingService.logDatabaseAction('users', 'insert', user.userId, { ...user, roles: roles || [] }, undefined, req?.user?.sub);
         return user;
     }

@@ -105,7 +105,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const { access_token, user } = response.data;
       localStorage.setItem('token', access_token);
+      
+      // Update the user state
       setUser(user);
+      
+      // Update language based on user preference
+      if (user.preferred_language) {
+        updateLanguage(user.preferred_language);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login');
       throw err;

@@ -40,6 +40,10 @@ export class AuthService {
       user: {
         id: user.userId,
         email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        username: user.username,
+        preferred_language: user.preferred_language || 'en',
         roles: user.user_roles.map(ur => ur.role),
       },
     };
