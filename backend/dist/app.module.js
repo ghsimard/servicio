@@ -16,6 +16,7 @@ const _servicesmodule = require("./services/services.module");
 const _authmodule = require("./auth/auth.module");
 const _dashboardmodule = require("./dashboard/dashboard.module");
 const _locationsmodule = require("./locations/locations.module");
+const _loggingmodule = require("./logging/logging.module");
 const _appconfig = /*#__PURE__*/ _interop_require_default(require("./config/app.config"));
 const _databaseconfig = /*#__PURE__*/ _interop_require_default(require("./config/database.config"));
 function _interop_require_default(obj) {
@@ -45,7 +46,8 @@ AppModule = _ts_decorate([
             _servicesmodule.ServicesModule,
             _authmodule.AuthModule,
             _dashboardmodule.DashboardModule,
-            _locationsmodule.LocationsModule
+            _locationsmodule.LocationsModule,
+            _loggingmodule.LoggingModule
         ],
         controllers: [
             _appcontroller.AppController

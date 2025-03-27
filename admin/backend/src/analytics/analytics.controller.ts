@@ -2,13 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards, Request } from '@
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
-
-interface TrackActionDto {
-  pageVisited: string;
-  actionType: string;
-  actionData?: any;
-  sessionId: string;
-}
+import { TrackActionDto, CreateSessionDto, EndSessionDto } from './analytics.dto';
 
 @ApiTags('analytics')
 @Controller('analytics')
@@ -18,18 +12,6 @@ export class AnalyticsController {
 
   @Post('track')
   @ApiOperation({ summary: 'Track admin user action' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        pageVisited: { type: 'string' },
-        actionType: { type: 'string' },
-        actionData: { type: 'object' },
-        sessionId: { type: 'string' },
-      },
-      required: ['pageVisited', 'actionType', 'sessionId'],
-    },
-  })
   async trackAction(@Body() data: TrackActionDto, @Request() req) {
     return this.analyticsService.trackAdminAction(
       req.user.sub,
@@ -37,7 +19,34 @@ export class AnalyticsController {
       data.pageVisited,
       data.actionType,
       data.actionData,
+      data.source || 'admin-app'
     );
+  }
+
+  @Post('session')
+  @ApiOperation({ summary: 'Create a new analytics session' })
+  async createSession(@Body() data: CreateSessionDto, @Request() req) {
+    return this.analyticsService.createSession(
+      req.user.sub, 
+      req, 
+      data.source || 'admin-app'
+    );
+  }
+
+  @Post('end-session')
+  @ApiOperation({ summary: 'End an analytics session' })
+  async endSession(@Body() data: EndSessionDto, @Request() req) {
+    return this.analyticsService.endSession(
+      req.user.sub, 
+      data.sessionId,
+      data.source || 'admin-app'
+    );
+  }
+
+  @Get('sessions')
+  @ApiOperation({ summary: 'Get all user sessions' })
+  async getSessions(@Query('limit') limit: number = 100) {
+    return this.analyticsService.getAllSessions(limit);
   }
 
   @Get('user/:userId')

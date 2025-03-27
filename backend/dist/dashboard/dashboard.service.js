@@ -22,7 +22,7 @@ function _ts_metadata(k, v) {
 let DashboardService = class DashboardService {
     async getDashboardData(userId) {
         // Get user info
-        const user = await this.prisma.users.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: {
                 user_id: userId
             }
@@ -39,7 +39,7 @@ let DashboardService = class DashboardService {
         };
     }
     async getUserProfile(userId) {
-        const user = await this.prisma.users.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: {
                 user_id: userId
             }
@@ -58,7 +58,7 @@ let DashboardService = class DashboardService {
     }
     async updateUserProfile(userId, updateData) {
         // Verify user exists
-        const existingUser = await this.prisma.users.findUnique({
+        const existingUser = await this.prisma.user.findUnique({
             where: {
                 user_id: userId
             }
@@ -68,7 +68,7 @@ let DashboardService = class DashboardService {
         }
         // Check if username already exists (if username is being updated)
         if (updateData.username && updateData.username !== existingUser.username) {
-            const usernameExists = await this.prisma.users.findFirst({
+            const usernameExists = await this.prisma.user.findFirst({
                 where: {
                     username: {
                         equals: updateData.username,
@@ -85,7 +85,7 @@ let DashboardService = class DashboardService {
         }
         // Update user profile
         try {
-            const updatedUser = await this.prisma.users.update({
+            const updatedUser = await this.prisma.user.update({
                 where: {
                     user_id: userId
                 },

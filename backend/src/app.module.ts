@@ -6,6 +6,7 @@ import { ServicesModule } from './services/services.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { LocationsModule } from './locations/locations.module';
+import { LoggingModule } from './logging/logging.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 
@@ -20,6 +21,7 @@ import databaseConfig from './config/database.config';
     AuthModule,
     DashboardModule,
     LocationsModule,
+    LoggingModule,
   ],
   controllers: [AppController],
   providers: [],

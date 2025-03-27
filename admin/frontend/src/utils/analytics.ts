@@ -1,101 +1,165 @@
 import axios from 'axios';
 
+// Define action types constants
 export const ACTION_TYPES = {
   PAGE_VIEW: 'page_view',
   BUTTON_CLICK: 'button_click',
-  FORM_SUBMIT: 'form_submit',
-  DATA_CREATE: 'data_create',
-  DATA_UPDATE: 'data_update',
-  DATA_DELETE: 'data_delete',
   SEARCH: 'search',
   FILTER: 'filter',
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
   EXPORT: 'export',
+  IMPORT: 'import',
   LOGIN: 'login',
   LOGOUT: 'logout',
   ERROR: 'error',
 };
 
-// Queue for batching analytics events
-let analyticsQueue: any[] = [];
-const MAX_QUEUE_SIZE = 10;
-const FLUSH_INTERVAL = 30000; // 30 seconds
+// Track user actions
+let sessionId: string | null = null;
+const APP_SOURCE = 'admin-app';
+const ADMIN_API_URL = 'http://localhost:3003';
 
-/**
- * Track a user action
- */
-export const trackUserAction = (params: {
-  actionType: string;
-  pageVisited: string;
-  actionData?: any;
-}) => {
+// Initialize analytics with session creation
+export const initializeAnalytics = async (userId: string): Promise<string | null> => {
+  if (!userId) {
+    console.error('Cannot initialize analytics without user ID');
+    return null;
+  }
+
+  // Check if we already have a valid session ID in localStorage
+  const storedSessionId = localStorage.getItem('analyticsSessionId');
+  if (storedSessionId) {
+    console.log('Using existing analytics session ID:', storedSessionId);
+    sessionId = storedSessionId;
+    return storedSessionId;
+  }
+
+  // Clear any existing session to force a new one
+  sessionId = null;
+  localStorage.removeItem('analyticsSessionId');
+
   try {
-    const userId = localStorage.getItem('userId');
-    const sessionId = localStorage.getItem('sessionId');
     const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No authentication token available');
+      return null;
+    }
+
+    console.log('Creating new analytics session for user:', userId);
+    const response = await axios.post(
+      `${ADMIN_API_URL}/analytics/session`,
+      { source: APP_SOURCE },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     
-    if (!userId || !sessionId || !token) {
-      console.debug('Missing user info, action not tracked', { userId, sessionId });
+    if (!response.data || !response.data.sessionId) {
+      console.error('Failed to get session ID from server response');
+      return null;
+    }
+    
+    const newSessionId = response.data.sessionId;
+    sessionId = newSessionId;
+    
+    // Store in localStorage for persistence
+    localStorage.setItem('analyticsSessionId', newSessionId);
+    
+    // Set up listener for page unload
+    window.addEventListener('beforeunload', endSession);
+    
+    console.log('Analytics session initialized:', newSessionId);
+    return newSessionId;
+  } catch (error) {
+    console.error('Failed to initialize analytics session:', error);
+    return null;
+  }
+};
+
+// End analytics session
+const endSession = async () => {
+  if (sessionId) {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      await axios.post(
+        `${ADMIN_API_URL}/analytics/end-session`,
+        { sessionId, source: APP_SOURCE },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
+      
+      // Clear the stored session ID
+      localStorage.removeItem('analyticsSessionId');
+      sessionId = null;
+    } catch (error) {
+      console.error('Failed to end analytics session:', error);
+    }
+  }
+};
+
+// Track user actions
+export const trackUserAction = async (
+  pageVisited: string,
+  actionType: string,
+  actionData: Record<string, any> = {}
+): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    
+    if (!token || !userId) {
+      console.warn('No authentication token or user ID available');
       return;
     }
     
-    // Add to queue
-    analyticsQueue.push({
-      ...params,
-      sessionId,
-      timestamp: new Date().toISOString(),
-    });
-    
-    // Flush if queue is full
-    if (analyticsQueue.length >= MAX_QUEUE_SIZE) {
-      flushAnalyticsQueue();
+    // Initialize session if not already done
+    let trackingSessionId = sessionId;
+    if (!trackingSessionId) {
+      console.warn('No active analytics session, initializing...');
+      trackingSessionId = await initializeAnalytics(userId);
+      if (!trackingSessionId) {
+        console.error('Failed to initialize session. Cannot track action.');
+        return;
+      }
     }
-  } catch (error) {
-    // Silent fail - analytics should never break the application
-    console.debug('Error queueing analytics:', error);
-  }
-};
 
-/**
- * Flush the analytics queue
- */
-const flushAnalyticsQueue = async () => {
-  if (analyticsQueue.length === 0) return;
-  
-  const events = [...analyticsQueue];
-  analyticsQueue = [];
-  
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    
-    // Send events one by one to match the current API
-    // In the future, consider implementing a batch endpoint
-    await Promise.all(
-      events.map(event => 
-        axios.post('/analytics/track', event, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      )
+    await axios.post(
+      `${ADMIN_API_URL}/analytics/track`,
+      {
+        sessionId: trackingSessionId,
+        pageVisited,
+        actionType,
+        actionData,
+        source: APP_SOURCE
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
+    
+    console.log(`Tracked action: ${actionType} on page ${pageVisited}`);
   } catch (error) {
-    console.debug('Error sending analytics:', error);
-    // Don't retry for now
+    console.error('Failed to track user action:', error);
   }
 };
 
-// Set up interval to flush events
-setInterval(flushAnalyticsQueue, FLUSH_INTERVAL);
+// Helper to track page views
+export const trackPageView = (pagePath: string): void => {
+  trackUserAction(pagePath, ACTION_TYPES.PAGE_VIEW, {});
+};
 
-// Flush events on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    flushAnalyticsQueue();
-  });
-}
-
-/**
- * Create a tracked version of a function
- */
+// Deprecated function signatures - keeping for backward compatibility
 export const withTracking = (
   fn: (...args: any[]) => any,
   actionType: string,
@@ -106,24 +170,26 @@ export const withTracking = (
       // Call the original function
       const result = fn(...args);
       
-      // Track the action
-      trackUserAction({
+      // Track the action with new signature
+      const currentPage = typeof window !== 'undefined' ? window.location.pathname : '';
+      trackUserAction(
+        currentPage,
         actionType,
-        pageVisited: typeof window !== 'undefined' ? window.location.pathname : '',
-        actionData: getData ? getData(...args) : { args },
-      });
+        getData ? getData(...args) : { args }
+      );
       
       return result;
     } catch (error) {
       // Track the error
-      trackUserAction({
-        actionType: ACTION_TYPES.ERROR,
-        pageVisited: typeof window !== 'undefined' ? window.location.pathname : '',
-        actionData: {
+      const currentPage = typeof window !== 'undefined' ? window.location.pathname : '';
+      trackUserAction(
+        currentPage,
+        ACTION_TYPES.ERROR,
+        {
           errorMessage: error instanceof Error ? error.message : String(error),
           actionType,
-        },
-      });
+        }
+      );
       
       // Re-throw to keep original behavior
       throw error;

@@ -8,6 +8,7 @@ import AppRoutes from './routes';
 import { AuthProvider } from './contexts/AuthContext';
 import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { SnackbarProvider } from './contexts/SnackbarContext';
+import AnalyticsInitializer from './components/analytics/AnalyticsInitializer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ function App() {
           <AuthProvider>
             <AccessibilityProvider>
               <SnackbarProvider>
+                <AnalyticsInitializer />
                 <AppRoutes />
               </SnackbarProvider>
             </AccessibilityProvider>

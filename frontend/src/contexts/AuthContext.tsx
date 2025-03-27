@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios, { AxiosError } from 'axios';
+import { createSessionAfterLogin, logUserLogout } from '../utils/logging';
 
 interface User {
   user_id: string;
@@ -131,6 +132,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(accessToken);
       setUser(userData);
       setIsAuthenticated(true);
+      
+      // Initialize logging session after successful login
+      try {
+        await createSessionAfterLogin(userData.user_id);
+      } catch (loggingError) {
+        console.error('Failed to initialize logging session:', loggingError);
+        // Don't fail the login if logging initialization fails
+      }
     } catch (err: unknown) {
       const error = err as AxiosError<ApiErrorResponse>;
       setError(error.response?.data?.message || 'Login failed');
@@ -170,7 +179,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Log the logout action if we have a user
+    if (user && user.user_id) {
+      try {
+        await logUserLogout(user.user_id);
+      } catch (loggingError) {
+        console.error('Failed to log logout:', loggingError);
+        // Don't block logout if logging fails
+      }
+    }
+
+    // Proceed with logout
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     setToken(null);

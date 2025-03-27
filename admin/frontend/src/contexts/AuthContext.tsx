@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import i18next from 'i18next';
 import { useNavigate } from 'react-router-dom';
-import { trackUserAction, ACTION_TYPES } from '../utils/analytics';
+import { trackUserAction, ACTION_TYPES, initializeAnalytics } from '../utils/analytics';
 
 interface User {
   user_id: string;
@@ -139,15 +139,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateLanguage(user.preferred_language);
       }
 
-      // Track user action
-      trackUserAction({
-        actionType: ACTION_TYPES.LOGIN,
-        pageVisited: '/login',
-        actionData: { 
-          email: user.email,
-          username: user.username
-        }
-      });
+      // Initialize analytics session
+      try {
+        await initializeAnalytics(user.id);
+        
+        // Track login action after analytics initialization
+        const currentPage = window.location.pathname;
+        trackUserAction(
+          currentPage,
+          ACTION_TYPES.LOGIN, 
+          { 
+            email: user.email,
+            username: user.username
+          }
+        );
+      } catch (analyticsError) {
+        console.error('Failed to initialize analytics:', analyticsError);
+        // Don't fail login if analytics fails
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login');
       throw err;
@@ -172,11 +181,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Track user action
-      trackUserAction({
-        actionType: ACTION_TYPES.LOGOUT,
-        pageVisited: window.location.pathname,
-        actionData: { timestamp: new Date().toISOString() }
-      });
+      const currentPage = window.location.pathname;
+      trackUserAction(
+        currentPage,
+        ACTION_TYPES.LOGOUT, 
+        { timestamp: new Date().toISOString() }
+      );
     } catch (err) {
       console.error('Logout error:', err);
     } finally {

@@ -33,6 +33,8 @@ import {
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import SourceBreakdown from '../components/analytics/SourceBreakdown';
+import SessionsTable from '../components/analytics/SessionsTable';
 
 // Generate colors for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5DADE2', '#58D68D', '#F4D03F'];
@@ -43,6 +45,7 @@ const AdminAnalytics = () => {
   const [error, setError] = useState<string | null>(null);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [sessions, setSessions] = useState<any[]>([]);
 
   const fetchAnalyticsData = async () => {
     try {
@@ -60,6 +63,13 @@ const AdminAnalytics = () => {
       });
 
       setAnalyticsData(response.data);
+      
+      // Fetch active sessions
+      const sessionsResponse = await axios.get('/api/analytics/sessions', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      setSessions(sessionsResponse.data || []);
     } catch (err) {
       console.error('Error fetching analytics data:', err);
       setError('Failed to load analytics data');
@@ -92,16 +102,18 @@ const AdminAnalytics = () => {
     return <Alert severity="info">No analytics data available</Alert>;
   }
 
-  // Prepare chart data
-  const pageViewsData = analyticsData.pageViewsByPath.map((item: any) => ({
-    name: item.page_visited || 'Unknown',
-    views: item._count,
-  }));
+  // Prepare chart data with safety checks
+  const pageViewsData = analyticsData.topPages ? 
+    analyticsData.topPages.map((item: any) => ({
+      name: item.page_visited || 'Unknown',
+      views: item.count,
+    })) : [];
 
-  const actionTypeData = analyticsData.actionTypeCount.map((item: any) => ({
-    name: item.action_type || 'Unknown',
-    value: item._count,
-  }));
+  const actionTypeData = analyticsData.actionCounts ? 
+    analyticsData.actionCounts.map((item: any) => ({
+      name: item.action_type || 'Unknown',
+      value: item.count,
+    })) : [];
 
   return (
     <div>
@@ -113,6 +125,7 @@ const AdminAnalytics = () => {
         <Tab label={t('analytics.overview', 'Overview')} />
         <Tab label={t('analytics.userActivity', 'User Activity')} />
         <Tab label={t('analytics.recentActions', 'Recent Actions')} />
+        <Tab label={t('analytics.sessions', 'Active Sessions')} />
       </Tabs>
 
       {activeTab === 0 && (
@@ -162,6 +175,38 @@ const AdminAnalytics = () => {
               </ResponsiveContainer>
             </Paper>
           </Grid>
+
+          <Grid item xs={12} md={6}>
+            {analyticsData.sourceCounts && (
+              <SourceBreakdown sourceData={analyticsData.sourceCounts} />
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('analytics.activeSessions', 'Active Sessions Overview')}
+              </Typography>
+              <Box display="flex" justifyContent="space-around" mt={3}>
+                <Box textAlign="center">
+                  <Typography variant="h4">{sessions.filter(s => s.is_active).length}</Typography>
+                  <Typography variant="body2" color="textSecondary">Active Sessions</Typography>
+                </Box>
+                <Box textAlign="center">
+                  <Typography variant="h4">
+                    {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'main-app').length}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">Main App</Typography>
+                </Box>
+                <Box textAlign="center">
+                  <Typography variant="h4">
+                    {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'admin-app').length}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">Admin App</Typography>
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
         </Grid>
       )}
 
@@ -182,10 +227,10 @@ const AdminAnalytics = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {analyticsData.userActivity.map((user: any) => (
-                      <TableRow key={user.userId}>
-                        <TableCell>{user.username}</TableCell>
-                        <TableCell>{user.email}</TableCell>
+                    {analyticsData.topUsers && analyticsData.topUsers.map((user: any) => (
+                      <TableRow key={user.user_id}>
+                        <TableCell>{user.username || user.user_id}</TableCell>
+                        <TableCell>{user.email || 'N/A'}</TableCell>
                         <TableCell align="right">{user.count}</TableCell>
                       </TableRow>
                     ))}
@@ -215,7 +260,7 @@ const AdminAnalytics = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {analyticsData.recentActivity.map((activity: any) => (
+                    {analyticsData.latestActivities && analyticsData.latestActivities.map((activity: any) => (
                       <TableRow key={activity.analytics_id}>
                         <TableCell>{activity.users?.username || 'Unknown'}</TableCell>
                         <TableCell>{activity.action_type}</TableCell>
@@ -234,8 +279,47 @@ const AdminAnalytics = () => {
           </Grid>
         </Grid>
       )}
+
+      {activeTab === 3 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <SessionsTable sessions={sessions} title="All User Sessions" />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <SessionsTable 
+              sessions={sessions.filter(s => getSourceFromUserAgent(s.user_agent) === 'main-app')} 
+              title="Main App Sessions" 
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <SessionsTable 
+              sessions={sessions.filter(s => getSourceFromUserAgent(s.user_agent) === 'admin-app')} 
+              title="Admin App Sessions" 
+            />
+          </Grid>
+        </Grid>
+      )}
     </div>
   );
+};
+
+// Helper function to extract source from user_agent
+const getSourceFromUserAgent = (userAgent: string): string => {
+  if (!userAgent) return 'unknown';
+  
+  const sourceMatch = userAgent.match(/\[source:([^\]]+)\]/);
+  if (sourceMatch && sourceMatch[1]) {
+    return sourceMatch[1];
+  }
+  
+  // Apply heuristics
+  if (userAgent.includes('Admin')) {
+    return 'admin-app';
+  } else if (userAgent.includes('Mozilla') || userAgent.includes('Chrome')) {
+    return 'main-app';
+  }
+  
+  return 'unknown';
 };
 
 export default AdminAnalytics; 

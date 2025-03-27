@@ -36,14 +36,14 @@ export class ServicesService {
         `Searching services with query: "${searchQuery}", language: ${validLanguage}`,
       );
 
-      if (!this.prisma?.services) {
+      if (!this.prisma?.service) {
         throw new InternalServerErrorException(
           'Prisma service is not initialized',
         );
       }
 
       // Create the where condition based on the language
-      const whereCondition: Prisma.servicesWhereInput = {
+      const whereCondition: Prisma.ServiceWhereInput = {
         is_active: true,
       };
 
@@ -65,7 +65,7 @@ export class ServicesService {
         };
       }
 
-      const results = await this.prisma.services.findMany({
+      const results = await this.prisma.service.findMany({
         where: whereCondition,
         select: {
           service_id: true,
