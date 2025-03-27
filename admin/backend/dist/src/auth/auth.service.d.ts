@@ -10,6 +10,7 @@ export declare class AuthService {
     validateUser(email: string, password: string): Promise<any>;
     login(user: any, req: Request): Promise<{
         access_token: string;
+        session_id: string;
         user: {
             id: any;
             email: any;

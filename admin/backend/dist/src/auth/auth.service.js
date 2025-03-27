@@ -37,9 +37,10 @@ let AuthService = class AuthService {
     async login(user, req) {
         const payload = { email: user.email, sub: user.userId, roles: user.user_roles.map(ur => ur.role) };
         const token = this.jwtService.sign(payload);
-        await this.sessionsService.createSession(user.userId, req, 'admin');
+        const session = await this.sessionsService.createSession(user.userId, req, 'admin');
         return {
             access_token: token,
+            session_id: session.session_id,
             user: {
                 id: user.userId,
                 email: user.email,

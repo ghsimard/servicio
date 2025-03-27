@@ -12,6 +12,7 @@ export declare class AuthController {
     constructor(authService: AuthService, usersService: UsersService);
     login(loginDto: LoginDto, req: ExpressRequest): Promise<{
         access_token: string;
+        session_id: string;
         user: {
             id: any;
             email: any;

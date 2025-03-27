@@ -44,6 +44,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Create axios interceptor to add session ID to all requests
+  useEffect(() => {
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const sessionId = localStorage.getItem('sessionId');
+        if (sessionId) {
+          config.headers['x-session-id'] = sessionId;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
+  }, []);
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -68,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If the error is due to token expiration or invalid token
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         localStorage.removeItem('token');
+        localStorage.removeItem('sessionId');
         setUser(null);
         navigate('/login');
       }
@@ -83,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (error) => {
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
+          localStorage.removeItem('sessionId');
           setUser(null);
           navigate('/login');
         }
@@ -103,8 +123,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password
       });
-      const { access_token, user } = response.data;
+      const { access_token, session_id, user } = response.data;
       localStorage.setItem('token', access_token);
+      localStorage.setItem('sessionId', session_id);
       
       // Update the user state
       setUser(user);
@@ -125,15 +146,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      if (token) {
+      const sessionId = localStorage.getItem('sessionId');
+      
+      if (token && sessionId) {
         await axios.post('http://localhost:3003/auth/logout', {}, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'x-session-id': sessionId
+          }
         });
       }
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('sessionId');
       setUser(null);
       setLoading(false);
     }
