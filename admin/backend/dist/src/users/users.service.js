@@ -12,10 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const logging_service_1 = require("../logging/logging.service");
 const bcrypt = require("bcrypt");
 let UsersService = class UsersService {
-    constructor(prisma) {
+    constructor(prisma, loggingService) {
         this.prisma = prisma;
+        this.loggingService = loggingService;
     }
     async findAll() {
         return this.prisma.user.findMany({
@@ -77,7 +79,7 @@ let UsersService = class UsersService {
             },
         });
     }
-    async create(data) {
+    async create(data, req) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const { roles, ...userData } = data;
         const user = await this.prisma.user.create({
@@ -110,10 +112,13 @@ let UsersService = class UsersService {
                 },
             },
         });
+        await this.loggingService.logDatabaseAction('users', 'insert', user.userId, { ...user, roles: roles || [] }, undefined, req?.user?.sub);
         return user;
     }
-    async update(id, data) {
+    async update(id, data, req) {
         const { roles, ...userData } = data;
+        const oldUser = await this.findOne(id);
+        const oldRoles = oldUser.user_roles.map(r => r.role);
         if (userData.password) {
             userData.passwordHash = await bcrypt.hash(userData.password, 10);
             delete userData.password;
@@ -147,20 +152,42 @@ let UsersService = class UsersService {
                 },
             },
         });
+        const newRoles = user.user_roles.map(r => r.role);
+        const newData = {
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            username: user.username,
+            preferred_language: user.preferred_language,
+            roles: newRoles,
+        };
+        const oldData = {
+            firstname: oldUser.firstname,
+            lastname: oldUser.lastname,
+            email: oldUser.email,
+            username: oldUser.username,
+            preferred_language: oldUser.preferred_language,
+            roles: oldRoles,
+        };
+        await this.loggingService.logDatabaseAction('users', 'update', user.userId, oldData, newData, req?.user?.sub);
         return user;
     }
-    async remove(id) {
+    async remove(id, req) {
+        const oldUser = await this.findOne(id);
         await this.prisma.user_roles.deleteMany({
             where: { user_id: id },
         });
-        return this.prisma.user.delete({
+        const user = await this.prisma.user.delete({
             where: { userId: id },
         });
+        await this.loggingService.logDatabaseAction('users', 'delete', id, undefined, { ...oldUser, roles: oldUser.user_roles.map(r => r.role) }, req?.user?.sub);
+        return user;
     }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        logging_service_1.LoggingService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

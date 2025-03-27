@@ -116,5 +116,16 @@
     "title": "Page non trouvée",
     "message": "La page que vous recherchez n'existe pas ou a été déplacée.",
     "backToHome": "Retour à l'accueil"
+  },
+  "logs": {
+    "title": "Journaux de Base de Données",
+    "all": "Tous les Journaux",
+    "timestamp": "Date et Heure",
+    "table": "Table",
+    "action": "Action",
+    "user": "Utilisateur",
+    "details": "Détails",
+    "refresh": "Actualiser les Journaux",
+    "filter": "Filtrer les Journaux"
   }
 } 

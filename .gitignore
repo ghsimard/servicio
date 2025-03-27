@@ -71,4 +71,11 @@ logs
 *.dump
 
 # Debug
-.debug/ 
+.debug/
+
+# Backups
+/backups/
+*.sql
+*.tar.gz
+*.zip
+*.backup 

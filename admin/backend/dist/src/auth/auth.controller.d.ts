@@ -19,14 +19,14 @@ export declare class AuthController {
         };
     }>;
     getProfile(req: any): Promise<{
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         firstname: string;
         lastname: string;
         username: string;
         email: string;
         preferred_language: string;
-        createdAt: Date;
-        updatedAt: Date;
         user_roles: {
             role: import(".prisma/client").$Enums.role_type;
         }[];

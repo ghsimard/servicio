@@ -1,7 +1,10 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { LoggingService } from '../logging/logging.service';
+import { Request } from 'express';
 export declare class ServicesService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private loggingService;
+    constructor(prisma: PrismaService, loggingService: LoggingService);
     findAll(): Promise<{
         createdAt: Date | null;
         updatedAt: Date | null;
@@ -14,7 +17,7 @@ export declare class ServicesService {
         isActive: boolean;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }[]>;
-    findOne(serviceId: string): Promise<{
+    findOne(id: string): Promise<{
         createdAt: Date | null;
         updatedAt: Date | null;
         serviceId: string;
@@ -26,7 +29,7 @@ export declare class ServicesService {
         isActive: boolean;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
-    create(data: any): Promise<{
+    create(data: any, req?: Request): Promise<{
         createdAt: Date | null;
         updatedAt: Date | null;
         serviceId: string;
@@ -38,7 +41,7 @@ export declare class ServicesService {
         isActive: boolean;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
-    update(serviceId: string, data: any): Promise<{
+    update(id: string, data: any, req?: Request): Promise<{
         createdAt: Date | null;
         updatedAt: Date | null;
         serviceId: string;
@@ -50,7 +53,7 @@ export declare class ServicesService {
         isActive: boolean;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
-    remove(serviceId: string): Promise<{
+    remove(id: string, req?: Request): Promise<{
         createdAt: Date | null;
         updatedAt: Date | null;
         serviceId: string;

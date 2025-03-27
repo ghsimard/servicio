@@ -44,7 +44,7 @@ interface User {
   preferred_language: string;
   createdAt: string;
   updatedAt: string;
-  user_roles: { role: string }[];
+  user_roles: { role: 'needer' | 'helper' | 'admin' }[];
 }
 
 interface UserFormData {
@@ -54,7 +54,7 @@ interface UserFormData {
   username: string;
   preferred_language?: string;
   password?: string;
-  roles: string[];
+  roles: ('needer' | 'helper' | 'admin')[];
 }
 
 const Users: React.FC = () => {
@@ -199,6 +199,15 @@ const Users: React.FC = () => {
     }
   };
 
+  const handleRoleChange = (role: 'needer' | 'helper' | 'admin') => {
+    setFormData(prev => ({
+      ...prev,
+      roles: prev.roles.includes(role)
+        ? prev.roles.filter(r => r !== role)
+        : [...prev.roles, role],
+    }));
+  };
+
   return (
     <Box>
       <Box
@@ -251,52 +260,38 @@ const Users: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{t('users.firstName')}</TableCell>
-                <TableCell>{t('users.lastName')}</TableCell>
                 <TableCell>{t('users.email')}</TableCell>
-                <TableCell>{t('users.preferredLanguage')}</TableCell>
+                <TableCell>{t('users.firstname')}</TableCell>
+                <TableCell>{t('users.lastname')}</TableCell>
+                <TableCell>{t('users.username')}</TableCell>
                 <TableCell>{t('users.roles')}</TableCell>
                 <TableCell>{t('common.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {users?.map((user) => (
-                <TableRow key={`user-row-${user.userId}`}>
+                <TableRow key={user.userId}>
+                  <TableCell>{user.email}</TableCell>
                   <TableCell>{user.firstname}</TableCell>
                   <TableCell>{user.lastname}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.preferred_language}</TableCell>
+                  <TableCell>{user.username}</TableCell>
                   <TableCell>
-                    {user.user_roles.map((ur, index) => (
-                      <Typography
-                        key={`role-${index}`}
-                        component="span"
-                        sx={{
-                          display: 'inline-block',
-                          mr: 1,
-                          mb: 0.5,
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          bgcolor: 'primary.light',
-                          color: 'primary.contrastText',
-                          fontSize: '0.875rem',
-                        }}
-                      >
-                        {t(`users.roles.${ur.role}`)}
-                      </Typography>
-                    ))}
+                    {user.user_roles.map((ur) => t(`users.roles.${ur.role}`)).join(', ')}
                   </TableCell>
                   <TableCell>
                     <IconButton
                       onClick={() => handleOpen(user)}
-                      aria-label={t('common.edit')}
+                      sx={{
+                        ...(largeText && { fontSize: '1.2rem' }),
+                      }}
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton
                       onClick={() => handleDelete(user.userId)}
-                      aria-label={t('common.delete')}
+                      sx={{
+                        ...(largeText && { fontSize: '1.2rem' }),
+                      }}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -313,84 +308,89 @@ const Users: React.FC = () => {
         onClose={handleClose}
         maxWidth="sm"
         fullWidth
-        sx={{
-          ...(largeText && {
-            '& .MuiDialogTitle-root': {
-              fontSize: '1.5rem',
-            },
-            '& .MuiDialogContent-root': {
-              fontSize: '1.2rem',
-            },
-          }),
-        }}
       >
         <DialogTitle>
           {editingUser ? t('users.edit') : t('users.create')}
         </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
+        <DialogContent>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
             <TextField
               fullWidth
               label={t('users.email')}
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               margin="normal"
               required
-              disabled={!!editingUser}
+              sx={{
+                ...(largeText && { fontSize: '1.2rem' }),
+              }}
             />
             <TextField
               fullWidth
-              label={t('users.firstName')}
+              label={t('users.firstname')}
               value={formData.firstname}
-              onChange={(e) =>
-                setFormData({ ...formData, firstname: e.target.value })
-              }
+              onChange={(e) => setFormData(prev => ({ ...prev, firstname: e.target.value }))}
               margin="normal"
               required
+              sx={{
+                ...(largeText && { fontSize: '1.2rem' }),
+              }}
             />
             <TextField
               fullWidth
-              label={t('users.lastName')}
+              label={t('users.lastname')}
               value={formData.lastname}
-              onChange={(e) =>
-                setFormData({ ...formData, lastname: e.target.value })
-              }
+              onChange={(e) => setFormData(prev => ({ ...prev, lastname: e.target.value }))}
               margin="normal"
               required
+              sx={{
+                ...(largeText && { fontSize: '1.2rem' }),
+              }}
             />
             <TextField
               fullWidth
               label={t('users.username')}
               value={formData.username}
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
+              onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
               margin="normal"
               required
+              sx={{
+                ...(largeText && { fontSize: '1.2rem' }),
+              }}
             />
             <TextField
               fullWidth
-              label={t('users.preferredLanguage')}
+              label={t('users.preferred_language')}
               value={formData.preferred_language}
-              onChange={(e) =>
-                setFormData({ ...formData, preferred_language: e.target.value })
-              }
+              onChange={(e) => setFormData(prev => ({ ...prev, preferred_language: e.target.value }))}
               margin="normal"
+              sx={{
+                ...(largeText && { fontSize: '1.2rem' }),
+              }}
             />
-            <FormControl component="fieldset" margin="normal">
-              <Typography component="legend">{t('users.roles')}</Typography>
+            {!editingUser && (
+              <TextField
+                fullWidth
+                type="password"
+                label={t('users.password')}
+                value={formData.password || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                margin="normal"
+                required
+                sx={{
+                  ...(largeText && { fontSize: '1.2rem' }),
+                }}
+              />
+            )}
+            <FormControl component="fieldset" sx={{ mt: 2 }}>
               <FormGroup>
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={formData.roles.includes('admin')}
-                      onChange={(e) => {
-                        const newRoles = e.target.checked
-                          ? [...formData.roles, 'admin']
-                          : formData.roles.filter(role => role !== 'admin');
-                        setFormData({ ...formData, roles: newRoles });
+                      onChange={() => handleRoleChange('admin')}
+                      sx={{
+                        ...(largeText && { fontSize: '1.2rem' }),
                       }}
                     />
                   }
@@ -399,26 +399,10 @@ const Users: React.FC = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={formData.roles.includes('moderator')}
-                      onChange={(e) => {
-                        const newRoles = e.target.checked
-                          ? [...formData.roles, 'moderator']
-                          : formData.roles.filter(role => role !== 'moderator');
-                        setFormData({ ...formData, roles: newRoles });
-                      }}
-                    />
-                  }
-                  label={t('users.roles.moderator')}
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
                       checked={formData.roles.includes('helper')}
-                      onChange={(e) => {
-                        const newRoles = e.target.checked
-                          ? [...formData.roles, 'helper']
-                          : formData.roles.filter(role => role !== 'helper');
-                        setFormData({ ...formData, roles: newRoles });
+                      onChange={() => handleRoleChange('helper')}
+                      sx={{
+                        ...(largeText && { fontSize: '1.2rem' }),
                       }}
                     />
                   }
@@ -428,11 +412,9 @@ const Users: React.FC = () => {
                   control={
                     <Checkbox
                       checked={formData.roles.includes('needer')}
-                      onChange={(e) => {
-                        const newRoles = e.target.checked
-                          ? [...formData.roles, 'needer']
-                          : formData.roles.filter(role => role !== 'needer');
-                        setFormData({ ...formData, roles: newRoles });
+                      onChange={() => handleRoleChange('needer')}
+                      sx={{
+                        ...(largeText && { fontSize: '1.2rem' }),
                       }}
                     />
                   }
@@ -440,31 +422,18 @@ const Users: React.FC = () => {
                 />
               </FormGroup>
             </FormControl>
-            {!editingUser && (
-              <TextField
-                fullWidth
-                label={t('auth.password')}
-                type="password"
-                value={formData.password || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                margin="normal"
-                required={!editingUser}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>{t('common.cancel')}</Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={createMutation.isLoading || updateMutation.isLoading}
-            >
-              {editingUser ? t('common.save') : t('common.create')}
-            </Button>
-          </DialogActions>
-        </form>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>{t('common.cancel')}</Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={createMutation.isPending || updateMutation.isPending}
+          >
+            {editingUser ? t('common.save') : t('common.create')}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

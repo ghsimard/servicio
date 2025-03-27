@@ -26,6 +26,7 @@ import {
   Settings as SettingsIcon,
   AccessibilityNew as AccessibilityIcon,
   Translate as TranslateIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useAccessibility } from '../contexts/AccessibilityContext';
@@ -85,6 +86,7 @@ const Layout: React.FC = () => {
     { text: t('bookings.title'), icon: <BookingIcon />, path: '/bookings' },
     { text: t('reviews.title'), icon: <ReviewIcon />, path: '/reviews' },
     { text: t('payments.title'), icon: <PaymentIcon />, path: '/payments' },
+    { text: t('logs.title'), icon: <HistoryIcon />, path: '/logs' },
     { text: t('settings.title'), icon: <SettingsIcon />, path: '/settings' },
   ];
 

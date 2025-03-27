@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { LoggingService } from '../logging/logging.service';
 import * as bcrypt from 'bcrypt';
+import { Request } from 'express';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private loggingService: LoggingService,
+  ) {}
 
   async findAll() {
     return this.prisma.user.findMany({
@@ -69,7 +74,7 @@ export class UsersService {
     });
   }
 
-  async create(data: any) {
+  async create(data: any, req?: Request) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const { roles, ...userData } = data;
 
@@ -104,11 +109,24 @@ export class UsersService {
       },
     });
 
+    await this.loggingService.logDatabaseAction(
+      'users',
+      'insert',
+      user.userId,
+      { ...user, roles: roles || [] },
+      undefined,
+      (req?.user as any)?.sub,
+    );
+
     return user;
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: any, req?: Request) {
     const { roles, ...userData } = data;
+    
+    // Get the current user data for logging
+    const oldUser = await this.findOne(id);
+    const oldRoles = oldUser.user_roles.map(r => r.role);
     
     if (userData.password) {
       userData.passwordHash = await bcrypt.hash(userData.password, 10);
@@ -148,18 +166,63 @@ export class UsersService {
       },
     });
 
+    const newRoles = user.user_roles.map(r => r.role);
+
+    // Prepare the data for logging
+    const newData = {
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      username: user.username,
+      preferred_language: user.preferred_language,
+      roles: newRoles,
+    };
+
+    const oldData = {
+      firstname: oldUser.firstname,
+      lastname: oldUser.lastname,
+      email: oldUser.email,
+      username: oldUser.username,
+      preferred_language: oldUser.preferred_language,
+      roles: oldRoles,
+    };
+
+    // Log the changes
+    await this.loggingService.logDatabaseAction(
+      'users',
+      'update',
+      user.userId,
+      oldData,
+      newData,
+      (req?.user as any)?.sub,
+    );
+
     return user;
   }
 
-  async remove(id: string) {
+  async remove(id: string, req?: Request) {
+    // Get the current user data for logging
+    const oldUser = await this.findOne(id);
+
     // Delete user roles first
     await this.prisma.user_roles.deleteMany({
       where: { user_id: id },
     });
 
     // Then delete the user
-    return this.prisma.user.delete({
+    const user = await this.prisma.user.delete({
       where: { userId: id },
     });
+
+    await this.loggingService.logDatabaseAction(
+      'users',
+      'delete',
+      id,
+      undefined,
+      { ...oldUser, roles: oldUser.user_roles.map(r => r.role) },
+      (req?.user as any)?.sub,
+    );
+
+    return user;
   }
 }

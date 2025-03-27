@@ -10,6 +10,7 @@ import Bookings from './pages/Bookings';
 import Reviews from './pages/Reviews';
 import Payments from './pages/Payments';
 import Settings from './pages/Settings';
+import Logs from './pages/Logs';
 import NotFound from './pages/NotFound';
 
 interface ProtectedRouteProps {
@@ -49,6 +50,7 @@ const AppRoutes: React.FC = () => {
         <Route path="reviews" element={<Reviews />} />
         <Route path="payments" element={<Payments />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="logs" element={<Logs />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

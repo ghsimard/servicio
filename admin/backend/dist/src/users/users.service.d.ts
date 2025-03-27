@@ -1,7 +1,10 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { LoggingService } from '../logging/logging.service';
+import { Request } from 'express';
 export declare class UsersService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private loggingService;
+    constructor(prisma: PrismaService, loggingService: LoggingService);
     findAll(): Promise<{
         userId: string;
         firstname: string;
@@ -42,7 +45,7 @@ export declare class UsersService {
             role: import(".prisma/client").$Enums.role_type;
         }[];
     }>;
-    create(data: any): Promise<{
+    create(data: any, req?: Request): Promise<{
         userId: string;
         firstname: string;
         lastname: string;
@@ -55,7 +58,7 @@ export declare class UsersService {
             role: import(".prisma/client").$Enums.role_type;
         }[];
     }>;
-    update(id: string, data: any): Promise<{
+    update(id: string, data: any, req?: Request): Promise<{
         userId: string;
         firstname: string;
         lastname: string;
@@ -68,7 +71,7 @@ export declare class UsersService {
             role: import(".prisma/client").$Enums.role_type;
         }[];
     }>;
-    remove(id: string): Promise<{
+    remove(id: string, req?: Request): Promise<{
         userId: string;
         firstname: string | null;
         lastname: string | null;
