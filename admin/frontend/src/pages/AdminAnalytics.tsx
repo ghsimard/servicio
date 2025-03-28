@@ -9,13 +9,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Card,
-  CardContent,
   Box,
   CircularProgress,
   Alert,
   Tabs,
   Tab,
+  useTheme,
+  useMediaQuery,
+  Skeleton,
 } from '@mui/material';
 import {
   PieChart,
@@ -31,135 +32,216 @@ import { format } from 'date-fns';
 import SourceBreakdown from '../components/analytics/SourceBreakdown';
 import SessionsTable from '../components/analytics/SessionsTable';
 import PageViewsChart from '../components/analytics/PageViewsChart';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 // Generate colors for charts
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5DADE2', '#58D68D', '#F4D03F'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-const AdminAnalytics = () => {
+const AdminAnalytics: React.FC = () => {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { highContrast, largeText } = useAccessibility();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
-  const fetchAnalyticsData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Authentication required');
-        return;
-      }
-
-      const response = await axios.get('/api/analytics/dashboard', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setAnalyticsData(response.data);
-      
-      // Fetch active sessions
-      const sessionsResponse = await axios.get('/api/analytics/sessions', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      setSessions(sessionsResponse.data || []);
-    } catch (err) {
-      console.error('Error fetching analytics data:', err);
-      setError('Failed to load analytics data');
-    } finally {
-      setLoading(false);
-    }
+  // Function to extract source from user agent
+  const getSourceFromUserAgent = (userAgent: string) => {
+    if (!userAgent) return 'unknown';
+    const sourceMatch = userAgent.match(/\[source:([^\]]+)\]/);
+    return sourceMatch ? sourceMatch[1] : 'unknown';
   };
 
   useEffect(() => {
-    fetchAnalyticsData();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch active sessions
+        const sessionsResponse = await axios.get('http://localhost:3002/api/sessions');
+        setSessions(sessionsResponse.data);
+
+        // Fetch analytics data
+        const analyticsResponse = await axios.get('http://localhost:3002/api/analytics');
+        setAnalyticsData(analyticsResponse.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching analytics data:', err);
+        setError('Failed to load analytics data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
+  // Prepare data for action type pie chart
+  const actionTypeData = analyticsData.actionCounts
+    ? Object.entries(analyticsData.actionCounts).map(([name, value]) => ({
+        name,
+        value,
+      }))
+    : [];
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '50vh',
+          flexDirection: 'column',
+          p: 3 
+        }}
+      >
+        <CircularProgress size={isMobile ? 40 : 60} thickness={4} />
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mt: 2,
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            ...(largeText && { fontSize: { xs: '1.2rem', sm: '1.4rem' } })
+          }}
+        >
+          {t('analytics.loading', 'Loading analytics data...')}
+        </Typography>
       </Box>
     );
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      </Box>
+    );
   }
-
-  if (!analyticsData) {
-    return <Alert severity="info">No analytics data available</Alert>;
-  }
-
-  // Prepare chart data with safety checks
-  const pageViewsData = analyticsData.topPages ? 
-    analyticsData.topPages.map((item: any) => ({
-      name: item.page_visited || 'Unknown',
-      views: item.count,
-    })) : [];
-
-  const actionTypeData = analyticsData.actionCounts ? 
-    analyticsData.actionCounts.map((item: any) => ({
-      name: item.action_type || 'Unknown',
-      value: item.count,
-    })) : [];
 
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>
-        {t('analytics.title', 'Admin Analytics Dashboard')}
+    <Box>
+      <Typography
+        variant="h4"
+        component="h1"
+        gutterBottom
+        sx={{
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+          mb: { xs: 2, sm: 3 },
+          ...(largeText && { fontSize: { xs: '1.8rem', sm: '2.3rem', md: '2.5rem' } }),
+        }}
+      >
+        {t('analytics.title', 'Analytics Dashboard')}
       </Typography>
 
-      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-        <Tab label={t('analytics.overview', 'Overview')} />
-        <Tab label={t('analytics.userActivity', 'User Activity')} />
-        <Tab label={t('analytics.recentActions', 'Recent Actions')} />
-        <Tab label={t('analytics.sessions', 'Active Sessions')} />
-      </Tabs>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: { xs: 2, sm: 3 } }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={handleTabChange}
+          variant={isMobile ? "fullWidth" : "standard"}
+          scrollButtons={isMobile ? "auto" : undefined}
+          allowScrollButtonsMobile
+          sx={{
+            '& .MuiTab-root': {
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              ...(largeText && { fontSize: { xs: '0.9rem', sm: '1rem' } }),
+              minWidth: { xs: 'auto', sm: 100 }
+            }
+          }}
+        >
+          <Tab 
+            label={t('analytics.overview', 'Overview')} 
+            id="analytics-tab-0"
+            aria-controls="analytics-tabpanel-0"
+          />
+          <Tab 
+            label={t('analytics.sessions', 'User Sessions')} 
+            id="analytics-tab-1"
+            aria-controls="analytics-tabpanel-1"
+          />
+        </Tabs>
+      </Box>
 
       {activeTab === 0 && (
         <Grid container spacing={4}>
           <Grid item xs={12}>
-            <Grid container spacing={4}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
               <Grid item xs={12} md={8} lg={9}>
-                {analyticsData.topPages && (
+                {!analyticsData.topPages ? (
+                  <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
+                ) : (
                   <PageViewsChart pageData={analyticsData.topPages} />
                 )}
               </Grid>
 
               <Grid item xs={12} md={4} lg={3}>
-                <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="h6" gutterBottom>
+                <Paper 
+                  sx={{ 
+                    p: { xs: 1.5, sm: 2, md: 3 }, 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    ...(highContrast && {
+                      border: '2px solid black',
+                      backgroundColor: '#ffffff',
+                    }),
+                  }}
+                >
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom
+                    sx={{
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      ...(largeText && { fontSize: { xs: '1.25rem', sm: '1.4rem' } })
+                    }}
+                  >
                     {t('analytics.actionTypes', 'Action Types')}
                   </Typography>
                   <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ResponsiveContainer width="100%" height={280}>
-                      <PieChart>
-                        <Pie
-                          data={actionTypeData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={70}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {actionTypeData.map((entry: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    {!actionTypeData.length ? (
+                      <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center' }}>
+                        {t('analytics.noData', 'No action data available')}
+                      </Typography>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={280}>
+                        <PieChart>
+                          <Pie
+                            data={actionTypeData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={isMobile ? 60 : 70}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }) => 
+                              isMobile ? 
+                                `${percent > 0.1 ? `${(percent * 100).toFixed(0)}%` : ''}` : 
+                                `${name}: ${(percent * 100).toFixed(0)}%`
+                            }
+                          >
+                            {actionTypeData.map((entry: any, index: number) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => [`${value} actions`, 'Count']} />
+                          <Legend 
+                            layout={isMobile ? "horizontal" : "vertical"}
+                            verticalAlign={isMobile ? "bottom" : "middle"}
+                            align={isMobile ? "center" : "right"}
+                            wrapperStyle={isMobile ? { fontSize: '0.7rem' } : { fontSize: '0.8rem' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
                   </Box>
                 </Paper>
               </Grid>
@@ -167,34 +249,111 @@ const AdminAnalytics = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
               <Grid item xs={12} md={6}>
-                {analyticsData.sourceCounts && (
+                {!analyticsData.sourceCounts ? (
+                  <Skeleton variant="rectangular" height={350} sx={{ borderRadius: 1 }} />
+                ) : (
                   <SourceBreakdown sourceData={analyticsData.sourceCounts} />
                 )}
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="h6" gutterBottom>
+                <Paper 
+                  sx={{ 
+                    p: { xs: 1.5, sm: 2, md: 3 }, 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    ...(highContrast && {
+                      border: '2px solid black',
+                      backgroundColor: '#ffffff',
+                    }),
+                  }}
+                >
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom
+                    sx={{
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      ...(largeText && { fontSize: { xs: '1.25rem', sm: '1.4rem' } })
+                    }}
+                  >
                     {t('analytics.activeSessions', 'Active Sessions Overview')}
                   </Typography>
-                  <Box display="flex" justifyContent="space-around" alignItems="center" sx={{ flexGrow: 1, py: 2 }}>
+                  <Box 
+                    display="flex" 
+                    flexDirection={isMobile ? "column" : "row"}
+                    justifyContent="space-around" 
+                    alignItems="center" 
+                    sx={{ 
+                      flexGrow: 1, 
+                      py: 2,
+                      gap: isMobile ? 2 : 0
+                    }}
+                  >
                     <Box textAlign="center">
-                      <Typography variant="h4">{sessions.filter(s => s.is_active).length}</Typography>
-                      <Typography variant="body2" color="textSecondary">{t('analytics.activeSessions', 'Active Sessions')}</Typography>
+                      <Typography 
+                        variant="h4"
+                        sx={{
+                          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                          ...(largeText && { fontSize: { xs: '1.8rem', sm: '2.3rem' } }),
+                        }}
+                      >
+                        {sessions.filter(s => s.is_active).length}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="textSecondary"
+                        sx={{
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                          ...(largeText && { fontSize: { xs: '0.875rem', sm: '1rem' } }),
+                        }}
+                      >
+                        {t('analytics.activeSessions', 'Active Sessions')}
+                      </Typography>
                     </Box>
                     <Box textAlign="center">
-                      <Typography variant="h4">
+                      <Typography 
+                        variant="h4"
+                        sx={{
+                          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                          ...(largeText && { fontSize: { xs: '1.8rem', sm: '2.3rem' } }),
+                        }}
+                      >
                         {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'main-app').length}
                       </Typography>
-                      <Typography variant="body2" color="textSecondary">{t('analytics.mainApp', 'Main App')}</Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="textSecondary"
+                        sx={{
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                          ...(largeText && { fontSize: { xs: '0.875rem', sm: '1rem' } }),
+                        }}
+                      >
+                        {t('analytics.mainApp', 'Main App')}
+                      </Typography>
                     </Box>
                     <Box textAlign="center">
-                      <Typography variant="h4">
+                      <Typography 
+                        variant="h4"
+                        sx={{
+                          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                          ...(largeText && { fontSize: { xs: '1.8rem', sm: '2.3rem' } }),
+                        }}
+                      >
                         {sessions.filter(s => s.is_active && getSourceFromUserAgent(s.user_agent) === 'admin-app').length}
                       </Typography>
-                      <Typography variant="body2" color="textSecondary">{t('analytics.adminApp', 'Admin App')}</Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="textSecondary"
+                        sx={{
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                          ...(largeText && { fontSize: { xs: '0.875rem', sm: '1rem' } }),
+                        }}
+                      >
+                        {t('analytics.adminApp', 'Admin App')}
+                      </Typography>
                     </Box>
                   </Box>
                 </Paper>
@@ -205,115 +364,41 @@ const AdminAnalytics = () => {
       )}
 
       {activeTab === 1 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('analytics.mostActiveUsers', 'Most Active Users')}
+        <Box>
+          <Paper
+            sx={{ 
+              p: { xs: 1, sm: 2, md: 3 },
+              ...(highContrast && {
+                border: '2px solid black',
+                backgroundColor: '#ffffff',
+              }),
+            }}
+          >
+            {loading ? (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  p: 3 
+                }}
+              >
+                <CircularProgress size={40} />
+              </Box>
+            ) : sessions.length === 0 ? (
+              <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+                {t('analytics.noSessions', 'No active sessions found')}
               </Typography>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('analytics.username', 'Username')}</TableCell>
-                      <TableCell>{t('analytics.email', 'Email')}</TableCell>
-                      <TableCell align="right">{t('analytics.actions', 'Actions')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {analyticsData.topUsers && analyticsData.topUsers.map((user: any) => (
-                      <TableRow key={user.user_id}>
-                        <TableCell>{user.username || user.user_id}</TableCell>
-                        <TableCell>{user.email || 'N/A'}</TableCell>
-                        <TableCell align="right">{user.count}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+            ) : (
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <SessionsTable sessions={sessions} title={t('analytics.activeSessions', 'Active Sessions')} />
               </TableContainer>
-            </Paper>
-          </Grid>
-        </Grid>
+            )}
+          </Paper>
+        </Box>
       )}
-
-      {activeTab === 2 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('analytics.recentActivity', 'Recent Activity')}
-              </Typography>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('analytics.user', 'User')}</TableCell>
-                      <TableCell>{t('analytics.action', 'Action')}</TableCell>
-                      <TableCell>{t('analytics.page', 'Page')}</TableCell>
-                      <TableCell>{t('analytics.timestamp', 'Timestamp')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {analyticsData.latestActivities && analyticsData.latestActivities.map((activity: any) => (
-                      <TableRow key={activity.analytics_id}>
-                        <TableCell>{activity.users?.username || 'Unknown'}</TableCell>
-                        <TableCell>{activity.action_type}</TableCell>
-                        <TableCell>{activity.page_visited}</TableCell>
-                        <TableCell>
-                          {activity.timestamp
-                            ? format(new Date(activity.timestamp), 'yyyy-MM-dd HH:mm:ss')
-                            : 'Unknown'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Grid>
-        </Grid>
-      )}
-
-      {activeTab === 3 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <SessionsTable sessions={sessions} title="All User Sessions" />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <SessionsTable 
-              sessions={sessions.filter(s => getSourceFromUserAgent(s.user_agent) === 'main-app')} 
-              title="Main App Sessions" 
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <SessionsTable 
-              sessions={sessions.filter(s => getSourceFromUserAgent(s.user_agent) === 'admin-app')} 
-              title="Admin App Sessions" 
-            />
-          </Grid>
-        </Grid>
-      )}
-    </div>
+    </Box>
   );
-};
-
-// Helper function to extract source from user_agent
-const getSourceFromUserAgent = (userAgent: string): string => {
-  if (!userAgent) return 'unknown';
-  
-  const sourceMatch = userAgent.match(/\[source:([^\]]+)\]/);
-  if (sourceMatch && sourceMatch[1]) {
-    return sourceMatch[1];
-  }
-  
-  // Apply heuristics
-  if (userAgent.includes('Admin')) {
-    return 'admin-app';
-  } else if (userAgent.includes('Mozilla') || userAgent.includes('Chrome')) {
-    return 'main-app';
-  }
-  
-  return 'unknown';
 };
 
 export default AdminAnalytics; 

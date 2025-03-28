@@ -1,221 +1,285 @@
-import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Alert } from 'antd';
-import { UserOutlined, DesktopOutlined, MobileOutlined, ChromeOutlined, GlobalOutlined, WindowsOutlined } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from 'react';
+import {
+  Paper,
+  Typography,
+  Box,
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
+  Grid,
+} from '@mui/material';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 
-interface SessionStats {
-  totalSessions: number;
-  activeSessions: number;
-  deviceStats: Array<{
-    device_type: string;
-    _count: number;
-  }>;
-  browserStats: Array<{
-    browser: string;
-    _count: number;
-  }>;
-}
-
-interface ActiveSession {
-  session_id: string;
-  user_id: string;
-  session_type: string;
-  ip_address: string;
-  device_type: string;
-  browser: string;
-  os: string;
-  login_time: string;
-  users: {
-    email: string;
-    username: string;
-  };
-}
+// Generate colors for charts
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 const SessionStats: React.FC = () => {
   const { t } = useTranslation();
-  const [stats, setStats] = useState<SessionStats | null>(null);
-  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { highContrast, largeText } = useAccessibility();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const response = await axios.get('http://localhost:3002/api/sessions/stats');
+        setData(response.data);
         setError(null);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        const config = {
-          headers: { Authorization: `Bearer ${token}` }
-        };
-
-        const [statsResponse, sessionsResponse] = await Promise.all([
-          axios.get('/sessions/stats/admin', config),
-          axios.get('/sessions/active/admin', config)
-        ]);
-
-        setStats(statsResponse.data);
-        setActiveSessions(sessionsResponse.data);
-      } catch (error) {
-        console.error('Error fetching session stats:', error);
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status === 401) {
-            setError(t('common.unauthorized'));
-          } else {
-            setError(t('sessions.errorLoading'));
-          }
-        } else {
-          setError(t('sessions.errorLoading'));
-        }
+      } catch (err) {
+        console.error('Error fetching session stats:', err);
+        setError('Failed to load session statistics');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [t]);
-
-  const getDeviceIcon = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'mobile':
-        return <MobileOutlined />;
-      case 'tablet':
-        return <DesktopOutlined />;
-      default:
-        return <DesktopOutlined />;
-    }
-  };
-
-  const getBrowserIcon = (browser: string) => {
-    switch (browser?.toLowerCase()) {
-      case 'chrome':
-        return <ChromeOutlined />;
-      case 'safari':
-        return <GlobalOutlined />;
-      default:
-        return <GlobalOutlined />;
-    }
-  };
-
-  const columns = [
-    {
-      title: t('sessions.user'),
-      dataIndex: ['users', 'email'],
-      key: 'email',
-    },
-    {
-      title: t('sessions.device'),
-      dataIndex: 'device_type',
-      key: 'device_type',
-      render: (text: string) => (
-        <span>
-          {getDeviceIcon(text)} {text}
-        </span>
-      ),
-    },
-    {
-      title: t('sessions.browser'),
-      dataIndex: 'browser',
-      key: 'browser',
-      render: (text: string) => (
-        <span>
-          {getBrowserIcon(text)} {text}
-        </span>
-      ),
-    },
-    {
-      title: t('sessions.os'),
-      dataIndex: 'os',
-      key: 'os',
-      render: (text: string) => (
-        <span>
-          <WindowsOutlined /> {text}
-        </span>
-      ),
-    },
-    {
-      title: t('sessions.loginTime'),
-      dataIndex: 'login_time',
-      key: 'login_time',
-      render: (text: string) => new Date(text).toLocaleString(),
-    },
-  ];
+  }, []);
 
   if (loading) {
-    return <div>{t('common.loading')}</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+        <CircularProgress size={40} />
+      </Box>
+    );
   }
 
   if (error) {
-    return <Alert type="error" message={error} />;
+    return (
+      <Typography color="error" sx={{ p: 2 }}>
+        {error}
+      </Typography>
+    );
   }
 
+  if (!data) {
+    return (
+      <Typography sx={{ p: 2 }}>
+        {t('sessions.noData', 'No session data available')}
+      </Typography>
+    );
+  }
+
+  // Prepare data for device type pie chart
+  const deviceData = data?.deviceStats?.length 
+    ? data.deviceStats.map((item: any) => ({
+        name: item.device_type || 'unknown',
+        value: item.count,
+      }))
+    : [{ name: 'No Data', value: 1 }];
+
+  // Prepare data for browser bar chart
+  const browserData = data?.browserStats?.length 
+    ? data.browserStats.map((item: any) => ({
+        name: item.browser || 'unknown',
+        count: item.count,
+      }))
+    : [{ name: 'No Data', count: 0 }];
+
   return (
-    <div>
-      <Row gutter={[16, 16]}>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title={t('sessions.totalSessions')}
-              value={stats?.totalSessions}
-              prefix={<UserOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title={t('sessions.activeSessions')}
-              value={stats?.activeSessions}
-              prefix={<UserOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title={t('sessions.deviceTypes')}
-              value={stats?.deviceStats.length}
-              prefix={<DesktopOutlined />}
-            />
-          </Card>
-        </Col>
-      </Row>
+    <Box sx={{ width: '100%' }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <Typography 
+            variant="subtitle1" 
+            gutterBottom
+            sx={{
+              fontSize: { xs: '0.9rem', sm: '1rem' },
+              fontWeight: 'medium',
+              textAlign: 'center',
+              ...(largeText && { fontSize: { xs: '1rem', sm: '1.1rem' } }),
+            }}
+          >
+            {t('sessions.deviceTypes', 'Device Types')}
+          </Typography>
+          <Box 
+            sx={{ 
+              height: { xs: 200, sm: 220 },
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center'
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={deviceData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={isMobile ? 60 : 80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => 
+                    isMobile ? 
+                      `${percent > 0.1 ? `${(percent * 100).toFixed(0)}%` : ''}` : 
+                      `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {deviceData.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [`${value} sessions`, 'Count']} />
+                <Legend
+                  layout={isMobile ? "horizontal" : "vertical"}
+                  verticalAlign={isMobile ? "bottom" : "middle"}
+                  align={isMobile ? "center" : "right"}
+                  wrapperStyle={isMobile ? { fontSize: '0.7rem', paddingTop: '10px' } : { fontSize: '0.8rem' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Grid>
 
-      <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
-        <Col span={12}>
-          <Card title={t('sessions.deviceDistribution')}>
-            {stats?.deviceStats.map((stat) => (
-              <div key={stat.device_type} style={{ marginBottom: '8px' }}>
-                {getDeviceIcon(stat.device_type)} {stat.device_type}: {stat._count}
-              </div>
-            ))}
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title={t('sessions.browserDistribution')}>
-            {stats?.browserStats.map((stat) => (
-              <div key={stat.browser} style={{ marginBottom: '8px' }}>
-                {getBrowserIcon(stat.browser)} {stat.browser}: {stat._count}
-              </div>
-            ))}
-          </Card>
-        </Col>
-      </Row>
+        <Grid item xs={12} md={6}>
+          <Typography 
+            variant="subtitle1" 
+            gutterBottom
+            sx={{
+              fontSize: { xs: '0.9rem', sm: '1rem' },
+              fontWeight: 'medium',
+              textAlign: 'center',
+              ...(largeText && { fontSize: { xs: '1rem', sm: '1.1rem' } }),
+            }}
+          >
+            {t('sessions.browsers', 'Browsers')}
+          </Typography>
+          <Box 
+            sx={{ 
+              height: { xs: 200, sm: 220 },
+              width: '100%'
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={browserData}
+                layout={isMobile ? "vertical" : "horizontal"}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: isMobile ? 60 : 20,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                {isMobile ? (
+                  <>
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 10 }} />
+                  </>
+                ) : (
+                  <>
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis />
+                  </>
+                )}
+                <Tooltip formatter={(value) => [`${value} sessions`, 'Count']} />
+                <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
+                <Bar dataKey="count" name="Sessions" fill={theme.palette.primary.main} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Grid>
 
-      <Card title={t('sessions.activeUsers')} style={{ marginTop: '16px' }}>
-        <Table
-          columns={columns}
-          dataSource={activeSessions}
-          rowKey="session_id"
-          pagination={{ pageSize: 5 }}
-        />
-      </Card>
-    </div>
+        <Grid item xs={12}>
+          <Box 
+            sx={{ 
+              mt: 1, 
+              p: { xs: 1, sm: 2 },
+              borderTop: `1px solid ${theme.palette.divider}`,
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-around',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography 
+                variant="h6"
+                sx={{
+                  fontSize: { xs: '1.2rem', sm: '1.4rem' },
+                  ...(largeText && { fontSize: { xs: '1.4rem', sm: '1.6rem' } }),
+                }}
+              >
+                {data?.totalSessions ?? 0}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  ...(largeText && { fontSize: { xs: '0.875rem', sm: '1rem' } }),
+                }}
+              >
+                {t('sessions.total', 'Total Sessions')}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: { xs: '1.2rem', sm: '1.4rem' },
+                  ...(largeText && { fontSize: { xs: '1.4rem', sm: '1.6rem' } }),
+                }}
+              >
+                {data?.activeSessions ?? 0}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  ...(largeText && { fontSize: { xs: '0.875rem', sm: '1rem' } }),
+                }}
+              >
+                {t('sessions.active', 'Active Sessions')}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: { xs: '1.2rem', sm: '1.4rem' },
+                  ...(largeText && { fontSize: { xs: '1.4rem', sm: '1.6rem' } }),
+                }}
+              >
+                {data?.avgSessionTime ? Math.round(data.avgSessionTime / 60) : 0}m
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  ...(largeText && { fontSize: { xs: '0.875rem', sm: '1rem' } }),
+                }}
+              >
+                {t('sessions.avgTime', 'Avg. Session Time')}
+              </Typography>
+            </Box>
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

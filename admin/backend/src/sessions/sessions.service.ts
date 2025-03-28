@@ -81,28 +81,70 @@ export class SessionsService {
   }
 
   async getSessionStats(sessionType?: 'admin' | 'main') {
-    const where = sessionType ? { session_type: sessionType } : {};
+    try {
+      const where = sessionType ? { session_type: sessionType } : {};
 
-    const [totalSessions, activeSessions, deviceStats, browserStats] = await Promise.all([
-      this.prisma.user_sessions.count({ where }),
-      this.prisma.user_sessions.count({ where: { ...where, is_active: true } }),
-      this.prisma.user_sessions.groupBy({
+      // Get basic counts
+      const [totalSessions, activeSessions] = await Promise.all([
+        this.prisma.user_sessions.count({ where }),
+        this.prisma.user_sessions.count({ where: { ...where, is_active: true } }),
+      ]);
+
+      // Calculate average session time for completed sessions
+      const completedSessions = await this.prisma.user_sessions.findMany({
+        where: {
+          ...where,
+          is_active: false,
+          duration: { not: null },
+        },
+        select: { duration: true },
+      });
+      
+      const avgSessionTime = completedSessions.length > 0
+        ? completedSessions.reduce((sum, session) => sum + (session.duration || 0), 0) / completedSessions.length
+        : 0;
+
+      // Get device types statistics
+      const deviceStats = await this.prisma.user_sessions.groupBy({
         by: ['device_type'],
         where,
         _count: true,
-      }),
-      this.prisma.user_sessions.groupBy({
+      }).then(results => 
+        results.map(item => ({
+          device_type: item.device_type || 'unknown',
+          count: item._count,
+        }))
+      );
+
+      // Get browser statistics
+      const browserStats = await this.prisma.user_sessions.groupBy({
         by: ['browser'],
         where,
         _count: true,
-      }),
-    ]);
+      }).then(results => 
+        results.map(item => ({
+          browser: item.browser || 'unknown',
+          count: item._count,
+        }))
+      );
 
-    return {
-      totalSessions,
-      activeSessions,
-      deviceStats,
-      browserStats,
-    };
+      return {
+        totalSessions,
+        activeSessions,
+        avgSessionTime,
+        deviceStats,
+        browserStats,
+      };
+    } catch (error) {
+      console.error('Error getting session stats:', error);
+      // Return empty results instead of throwing an error
+      return {
+        totalSessions: 0,
+        activeSessions: 0,
+        avgSessionTime: 0,
+        deviceStats: [],
+        browserStats: [],
+      };
+    }
   }
 } 
