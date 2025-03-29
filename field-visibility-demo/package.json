@@ -1,0 +1,42 @@
+{
+  "name": "field-visibility-demo",
+  "version": "1.0.0",
+  "description": "Field visibility management demo",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "ts-node prisma/seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@emotion/react": "11.11.1",
+    "@emotion/styled": "11.11.0",
+    "@mui/material": "5.13.0",
+    "@mui/icons-material": "5.11.16",
+    "@prisma/client": "5.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.10.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.0.28",
+    "@vitejs/plugin-react": "4.0.0",
+    "prisma": "5.0.0",
+    "typescript": "5.0.2",
+    "vite": "4.5.0",
+    "ts-node": "10.9.1"
+  },
+  "resolutions": {
+    "@emotion/react": "11.11.1",
+    "@emotion/styled": "11.11.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}

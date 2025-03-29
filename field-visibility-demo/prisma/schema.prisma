@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String                @id @default(uuid())
+  email           String                @unique
+  name            String
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  fieldVisibilities UserFieldVisibility[]
+}
+
+model FieldDefinition {
+  id              String                @id @default(uuid())
+  entityType      String                // e.g., "user_profile"
+  fieldName       String                // e.g., "email"
+  displayName     String                // e.g., "Email Address"
+  fieldType       String                // e.g., "text"
+  defaultVisibility Json                // Default visibility rules
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  userVisibilities UserFieldVisibility[]
+}
+
+model UserFieldVisibility {
+  id              String          @id @default(uuid())
+  userId          String
+  fieldDefId      String
+  visibilityRules Json            // User-specific visibility rules
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id])
+  fieldDefinition FieldDefinition @relation(fields: [fieldDefId], references: [id])
+
+  @@unique([userId, fieldDefId])
+} 
