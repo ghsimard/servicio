@@ -281,12 +281,42 @@ export const FieldConfiguration: React.FC = () => {
     return selectedUsers[fieldId]?.length || 0;
   };
 
-  const handleDisplayNameChange = (fieldId: string, newValue: string) => {
-    setFields(fields.map(f =>
-      f.id === fieldId
-        ? { ...f, displayName: newValue }
-        : f
-    ));
+  const handleDisplayNameChange = async (fieldId: string, newValue: string) => {
+    try {
+      // Update local state immediately for responsive UI
+      setFields(fields.map(f =>
+        f.id === fieldId
+          ? { ...f, displayName: newValue }
+          : f
+      ));
+
+      // Update the field definition in the backend
+      const field = fields.find(f => f.id === fieldId);
+      if (!field) return;
+
+      const response = await fetch(`/api/field-definitions/${fieldId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          displayName: newValue,
+          defaultVisibility: field.defaultVisibility,
+          selectedUserIds: [], // No user-specific changes needed for display name
+          changedKey: 'displayName',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update display name');
+      }
+
+      // After successful update, trigger a refresh
+      triggerUpdate();
+    } catch (error) {
+      console.error('Error updating display name:', error);
+      setError('Failed to update display name');
+    }
   };
 
   const handleSetAllFields = async (enabled: boolean) => {
