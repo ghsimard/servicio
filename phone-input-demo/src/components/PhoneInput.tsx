@@ -145,8 +145,22 @@ export const PhoneInput: React.FC = () => {
     ));
   };
 
-  const formatPhoneNumber = (value: string): string => {
-    const digits = value;
+  const formatPhoneNumber = (value: string, countryCode: string): string => {
+    // Only keep the first 10 digits
+    const digits = value.replace(/\D/g, '').slice(0, 10);
+    
+    // Use (XXX) XXX-XXXX format for USA/Canada (+1)
+    if (countryCode === '+1') {
+      if (digits.length <= 3) {
+        return digits;
+      } else if (digits.length <= 6) {
+        return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+      } else {
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+      }
+    }
+    
+    // For other country codes, use XXX-XXX-XXXX format
     if (digits.length <= 3) {
       return digits;
     } else if (digits.length <= 6) {
@@ -157,18 +171,23 @@ export const PhoneInput: React.FC = () => {
   };
 
   const handleNumberChange = (id: string, newNumber: string) => {
-    // Get the actual input value
+    // Get the actual input value and limit to 10 digits
     const inputValue = newNumber;
+    const digits = inputValue.replace(/\D/g, '').slice(0, 10);
     
-    // If it's just digits, use them directly
-    if (/^\d+$/.test(inputValue)) {
+    if (digits.length > 0) {
+      // Get the current phone's country code
+      const currentPhone = phoneNumbers.find(phone => phone.id === id);
+      const formattedNumber = formatPhoneNumber(digits, currentPhone?.countryCode || '+1');
+      const error = validatePhoneNumber(digits);
+      
       setPhoneNumbers(phoneNumbers.map(phone => 
-        phone.id === id ? { ...phone, number: inputValue } : phone
+        phone.id === id ? { ...phone, number: formattedNumber, error } : phone
       ));
 
       // Add new field if it's the last one and we have our first digit
       const lastPhone = phoneNumbers[phoneNumbers.length - 1];
-      if (id === lastPhone.id && inputValue.length === 1) {
+      if (id === lastPhone.id && digits.length === 1) {
         setPhoneNumbers(prev => [...prev, { 
           id: Date.now().toString(), 
           type: 'mobile', 
@@ -177,18 +196,6 @@ export const PhoneInput: React.FC = () => {
           extension: ''
         }]);
       }
-      return;
-    }
-
-    // For inputs with formatting characters, handle formatting
-    const digits = inputValue.replace(/\D/g, '');
-    if (digits.length > 0) {
-      const formattedNumber = formatPhoneNumber(digits);
-      const error = validatePhoneNumber(digits);
-      
-      setPhoneNumbers(phoneNumbers.map(phone => 
-        phone.id === id ? { ...phone, number: formattedNumber, error } : phone
-      ));
     } else {
       setPhoneNumbers(phoneNumbers.map(phone => 
         phone.id === id ? { ...phone, number: '', error: undefined } : phone
