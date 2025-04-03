@@ -1,17 +1,21 @@
-import { Box, AppBar, Toolbar, Container, Typography, Button, Avatar, IconButton, Menu, MenuItem } from '@mui/material';
+import { Box, AppBar, Toolbar, Container, Typography, Button, Avatar, IconButton, Menu, MenuItem, Paper, Divider } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import theme from './theme';
 import ThemeProvider from './theme/ThemeProvider';
 import SearchBar from './components/SearchBar';
-import LanguageSwitcher from './components/LanguageSwitcher';
-import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import { AccessibilityProvider, useAccessibility } from './contexts/AccessibilityContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoggingProvider } from './contexts/LoggingContext';
 import PageTrackingLayout from './components/PageTrackingLayout';
 import AuthTestPage from './pages/AuthTestPage';
 import AccountPage from './pages/AccountPage';
+import LanguageIcon from '@mui/icons-material/Language';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import MenuIcon from '@mui/icons-material/Menu';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
@@ -56,94 +60,302 @@ const Navigation = () => {
       role="group"
       aria-label={t('navigation.actions')}
     >
-      <LanguageSwitcher />
-      
-      {isAuthenticated ? (
-        <>
-          <IconButton 
-            onClick={handleMenu} 
-            color="inherit"
-            aria-label="Account menu"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.08)'
-              },
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 3,
+          padding: '4px',
+          bgcolor: 'background.paper'
+        }}
+      >
+        <IconButton
+          size="small"
+          aria-label="Menu"
+          onClick={handleMenu}
+          sx={{
+            color: 'text.primary',
+            '&:hover': { bgcolor: 'action.hover' }
+          }}
+        >
+          <MenuIcon fontSize="small" />
+        </IconButton>
+        <Divider orientation="vertical" flexItem sx={{ height: 20, my: 'auto' }} />
+        {isAuthenticated ? (
+          <Avatar 
+            sx={{ 
+              width: 30, 
+              height: 30,
+              bgcolor: menuOpen ? theme.palette.secondary.dark : theme.palette.secondary.main,
+              fontSize: '0.875rem',
               transition: 'background-color 0.3s'
             }}
           >
-            <Avatar 
-              sx={{ 
-                width: 32, 
-                height: 32,
-                bgcolor: menuOpen ? theme.palette.secondary.dark : theme.palette.secondary.main,
-                fontSize: '0.875rem',
-                transition: 'background-color 0.3s'
-              }}
-            >
-              {user?.username.substring(0, 1).toUpperCase()}
-            </Avatar>
-          </IconButton>
-          <Menu
-            id="menu-appbar"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
+            {user?.username.substring(0, 1).toUpperCase()}
+          </Avatar>
+        ) : (
+          <IconButton
+            size="small"
+            aria-label="User account"
+            onClick={handleMenu}
+            sx={{
+              color: 'text.primary',
+              '&:hover': { bgcolor: 'action.hover' }
             }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={menuOpen}
-            onClose={handleClose}
           >
+            <PersonOutlineIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
+
+      <Menu
+        id="menu-appbar"
+        anchorEl={anchorEl}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        keepMounted
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        open={menuOpen}
+        onClose={handleClose}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 200
+          }
+        }}
+      >
+        {isAuthenticated ? (
+          [
             <MenuItem 
+              key="account"
               component={Link} 
               to="/account" 
               onClick={handleClose}
             >
               {t('common.profile', 'Account')}
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
+            </MenuItem>,
+            <MenuItem 
+              key="logout"
+              onClick={handleLogout}
+            >
               {t('common.logout', 'Logout')}
             </MenuItem>
-          </Menu>
-        </>
-      ) : (
-        <>
-          <Button 
-            variant="contained" 
-            color="secondary" 
-            component={Link} 
-            to="/auth-test?tab=0"
-            aria-label="Sign Up"
-            sx={{ 
-              '&:hover': { 
-                backgroundColor: theme.palette.secondary.dark 
-              } 
-            }}
-          >
-            {t('common.signUp', 'Sign Up')}
-          </Button>
-          <Button 
-            color="inherit" 
-            component={Link} 
-            to="/auth-test?tab=1"
-            aria-label="Login"
-            sx={{ 
-              '&:hover': { 
-                backgroundColor: 'rgba(255, 255, 255, 0.08)' 
-              } 
-            }}
-          >
-            {t('common.login', 'Login')}
-          </Button>
-        </>
-      )}
+          ]
+        ) : (
+          <>
+            <MenuItem 
+              key="login"
+              component={Link} 
+              to="/auth-test?tab=1" 
+              onClick={handleClose}
+            >
+              {t('common.login', 'Sign in')}
+            </MenuItem>
+            <MenuItem 
+              key="signup"
+              component={Link} 
+              to="/auth-test?tab=0" 
+              onClick={handleClose}
+            >
+              {t('common.signUp', 'Sign up')}
+            </MenuItem>
+            <Divider sx={{ my: 1 }} />
+            <MenuItem 
+              key="offer-service"
+              component={Link} 
+              to="/offer-service"
+              onClick={handleClose}
+            >
+              {t('common.offerService', 'Offer your service')}
+            </MenuItem>
+            <MenuItem 
+              key="help-center"
+              component={Link} 
+              to="/help"
+              onClick={handleClose}
+            >
+              {t('common.helpCenter', 'Help Center')}
+            </MenuItem>
+          </>
+        )}
+      </Menu>
     </Box>
+  );
+};
+
+// Footer component
+const Footer = () => {
+  const { t, i18n } = useTranslation();
+  const { announceMessage } = useAccessibility();
+  const [currencyAnchorEl, setCurrencyAnchorEl] = useState<null | HTMLElement>(null);
+  const [langAnchorEl, setLangAnchorEl] = useState<null | HTMLElement>(null);
+  
+  const currencyOpen = Boolean(currencyAnchorEl);
+  const langOpen = Boolean(langAnchorEl);
+
+  const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+    { code: 'es', label: 'Español' },
+  ];
+
+  const handleCurrencyClick = (event: React.MouseEvent<HTMLElement>) => {
+    setCurrencyAnchorEl(event.currentTarget);
+  };
+
+  const handleLangClick = (event: React.MouseEvent<HTMLElement>) => {
+    setLangAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setCurrencyAnchorEl(null);
+    setLangAnchorEl(null);
+  };
+
+  const handleLanguageSelect = (languageCode: string, label: string) => {
+    i18n.changeLanguage(languageCode);
+    handleClose();
+    announceMessage(t('language.changed', { language: label }));
+  };
+
+  const currentLanguage = languages.find(lang => lang.code === i18n.language)?.label || 'English';
+
+  return (
+    <Paper 
+      component="footer" 
+      elevation={0}
+      sx={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        zIndex: theme.zIndex.appBar - 1
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box 
+          sx={{ 
+            py: 1,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          {/* Language selector */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Button
+              id="language-button"
+              aria-controls={langOpen ? 'language-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={langOpen ? 'true' : undefined}
+              onClick={handleLangClick}
+              startIcon={<LanguageIcon fontSize="small" />}
+              endIcon={<KeyboardArrowDownIcon fontSize="small" />}
+              size="small"
+              sx={{
+                color: 'text.primary',
+                textTransform: 'none',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
+              {currentLanguage}
+            </Button>
+          </Box>
+
+          {/* Currency selector */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Button
+              id="currency-button"
+              aria-controls={currencyOpen ? 'currency-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={currencyOpen ? 'true' : undefined}
+              onClick={handleCurrencyClick}
+              startIcon={<AttachMoneyIcon fontSize="small" />}
+              endIcon={<KeyboardArrowDownIcon fontSize="small" />}
+              size="small"
+              sx={{
+                color: 'text.primary',
+                textTransform: 'none',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
+              CAD
+            </Button>
+          </Box>
+
+          {/* Language Menu */}
+          <Menu
+            id="language-menu"
+            anchorEl={langAnchorEl}
+            open={langOpen}
+            onClose={handleClose}
+            MenuListProps={{
+              'aria-labelledby': 'language-button',
+              role: 'listbox',
+            }}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+          >
+            {languages.map((language) => (
+              <MenuItem
+                key={language.code}
+                onClick={() => handleLanguageSelect(language.code, language.label)}
+                selected={i18n.language === language.code}
+                role="option"
+                aria-selected={i18n.language === language.code}
+              >
+                {language.label}
+              </MenuItem>
+            ))}
+          </Menu>
+
+          {/* Currency Menu */}
+          <Menu
+            id="currency-menu"
+            anchorEl={currencyAnchorEl}
+            open={currencyOpen}
+            onClose={handleClose}
+            MenuListProps={{
+              'aria-labelledby': 'currency-button',
+              role: 'listbox',
+            }}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+          >
+            <MenuItem onClick={handleClose}>$ CAD</MenuItem>
+            <MenuItem onClick={handleClose}>$ USD</MenuItem>
+          </Menu>
+        </Box>
+      </Container>
+    </Paper>
   );
 };
 
@@ -320,6 +532,7 @@ function AppContent() {
             </PageTrackingLayout>
           } />
         </Routes>
+        <Footer />
       </Box>
     </Router>
   );
