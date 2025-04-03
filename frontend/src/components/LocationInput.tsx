@@ -299,82 +299,57 @@ const LocationInput: React.FC<LocationInputProps> = ({
   return (
     <>
       <Autocomplete
-        id="location-autocomplete"
-        options={options}
-        getOptionLabel={(option) => typeof option === 'string' ? option : option.description}
-        filterOptions={(x) => x}
         freeSolo
-        includeInputInList
-        filterSelectedOptions
         value={value}
         inputValue={inputValue}
-        loading={loading}
-        onInputChange={(event, newInputValue) => {
+        onChange={(_, newValue) => {
+          onChange(newValue || '');
+        }}
+        onInputChange={(_, newInputValue) => {
           setInputValue(newInputValue);
         }}
-        onChange={(event, newValue) => {
-          if (typeof newValue === 'string') {
-            onChange(newValue);
-          } else if (newValue && 'description' in newValue) {
-            onChange(newValue.description);
-            announceMessage(t('location.selected', 'Selected location: {{location}}', { location: newValue.description }));
-          } else {
-            onChange('');
-          }
-        }}
-        sx={{ width: width || '100%', ...sx }}
-        renderOption={(props, option) => (
-          <li {...props} key={option.place_id || 'fallback-key'}>
-            <div style={{ padding: '8px 4px' }}>
-              {typeof option === 'string' ? option : option.description}
-            </div>
-          </li>
-        )}
+        options={options}
+        getOptionLabel={(option) => 
+          typeof option === 'string' ? option : option.description
+        }
+        loading={loading}
+        fullWidth={fullWidth}
+        disabled={disabled}
+        clearIcon={inputValue ? undefined : null}
         renderInput={(params) => (
           <TextField
             {...params}
             label={label}
             placeholder={placeholder}
-            fullWidth={fullWidth}
             required={required}
-            disabled={disabled}
             variant={variant}
             error={error || !!apiError}
-            helperText={apiError ? '' : helperText}
+            helperText={helperText || apiError}
             InputProps={{
               ...params.InputProps,
               endAdornment: (
-                <React.Fragment>
+                <>
                   {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                  <Tooltip title={t('location.useGps', 'Use my location')}>
+                  {params.InputProps.endAdornment}
+                  <Tooltip title={t('location.useCurrentLocation', 'Use current location')}>
                     <IconButton
                       onClick={handleGpsLocation}
                       disabled={gpsLoading || disabled}
                       size="small"
-                      sx={{ 
-                        mr: 1,
-                        color: 'action.active',
-                        '&:hover': {
-                          color: 'primary.main',
-                        }
-                      }}
-                      aria-label={t('location.useGps', 'Use my location')}
+                      sx={{ ml: 0.5 }}
                     >
-                      {gpsLoading ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <MyLocationIcon fontSize="small" />
-                      )}
+                      <MyLocationIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                  {params.InputProps.endAdornment}
-                </React.Fragment>
+                </>
               ),
             }}
           />
         )}
-        noOptionsText={apiError ? '' : t('location.noOptions', 'No locations found')}
-        loadingText={t('location.loading', 'Loading locations...')}
+        sx={{
+          width: width || (fullWidth ? '100%' : 'auto'),
+          ...sx,
+        }}
       />
       {apiError && (
         <Alert severity="error" sx={{ mt: 1 }}>
