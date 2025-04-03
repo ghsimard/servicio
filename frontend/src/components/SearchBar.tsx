@@ -556,17 +556,26 @@ export default function SearchBar() {
           position: 'relative',
           zIndex: 0
         }}>
-          <IconButton
+          <Button
             type="submit"
+            startIcon={<SearchIcon />}
             aria-label={t('search.submit')}
             sx={{ 
               ...buttonStyles,
               position: 'relative',
-              zIndex: 0
+              zIndex: 0,
+              px: 3,
+              py: 1,
+              bgcolor: theme.palette.primary.main,
+              color: 'white',
+              '&:hover': {
+                bgcolor: theme.palette.primary.dark,
+                transform: 'translateY(-1px)'
+              }
             }}
           >
-            <SearchIcon />
-          </IconButton>
+            Find my Helper
+          </Button>
           <IconButton 
             onClick={() => setOpenAdvanced(true)}
             aria-label={t('search.openAdvanced')}
