@@ -164,6 +164,14 @@ export default function SearchBar() {
     }
   };
 
+  const handleLocationChange = (newValue: string) => {
+    setLocation(newValue);
+    setAdvancedSearch(prev => ({
+      ...prev,
+      location: newValue
+    }));
+  };
+
   // Function to get the service name based on current language
   const getLocalizedName = (service: Service): string => {
     const currentLang = i18n.language;
@@ -296,6 +304,31 @@ export default function SearchBar() {
     }
   };
 
+  const handleAdvancedServiceChange = (newValue: string | Service | null) => {
+    if (newValue) {
+      const selectedService = typeof newValue === 'string' 
+        ? { service_id: '', name_en: newValue, name_fr: null, name_es: null }
+        : newValue;
+      
+      const serviceName = getLocalizedName(selectedService);
+      announceMessage(t('search.serviceSelected', { name: serviceName }));
+      setAdvancedSearch({
+        ...advancedSearch,
+        service: selectedService
+      });
+      // Sync with main search bar and prevent dropdown
+      setSearchQuery(serviceName);
+      setIsDropdownOpen(false);
+      addToSearchHistory(selectedService);
+    } else {
+      setAdvancedSearch({
+        ...advancedSearch,
+        service: null
+      });
+      setSearchQuery('');
+    }
+  };
+
   return (
     <>
       <Box
@@ -311,17 +344,22 @@ export default function SearchBar() {
           minWidth: '100%',
           gap: { xs: 1, sm: 2 },
           mx: 'auto',
-          px: { xs: 2, sm: 3 }
+          px: { xs: 2, sm: 3 },
+          position: 'relative',
+          '& .MuiAutocomplete-popper': {
+            zIndex: 1300
+          }
         }}
       >
         <Box
           sx={{
-            flex: { xs: 1, sm: 0.45 }, // Equal flex for both inputs
+            flex: { xs: 1, sm: 0.45 },
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
-            width: { xs: '100%', sm: '45%' }, // Equal width for both inputs
+            width: { xs: '100%', sm: '45%' },
             minWidth: { xs: '100%', sm: '250px' },
+            zIndex: 1
           }}
         >
           <Box sx={searchContainerStyles}>
@@ -330,7 +368,30 @@ export default function SearchBar() {
               sx={{ 
                 flex: 1,
                 '& .MuiAutocomplete-popper': {
-                  position: 'relative !important'
+                  zIndex: 1300
+                },
+                flexGrow: 1,
+                '& .MuiAutocomplete-endAdornment': {
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  position: 'absolute',
+                  right: '9px',
+                  top: '50%',
+                  transform: 'translateY(-50%)'
+                },
+                '& .MuiAutocomplete-clearIndicator': {
+                  visibility: searchQuery ? 'visible' : 'hidden',
+                  padding: '2px',
+                  color: 'action.active',
+                  '&:hover': {
+                    color: 'action.active',
+                    backgroundColor: 'action.hover'
+                  }
+                },
+                '& .MuiAutocomplete-clearIndicator svg': {
+                  fontSize: '18px',
+                  display: 'block'
                 }
               }}
               options={displayOptions}
@@ -357,7 +418,13 @@ export default function SearchBar() {
                 }
               }}
               onInputChange={(event, newValue, reason) => {
-                if (reason === 'reset') {
+                if (reason === 'reset' || reason === 'clear') {
+                  setIsDropdownOpen(false);
+                  setSearchQuery('');
+                  setAdvancedSearch(prev => ({
+                    ...prev,
+                    service: null
+                  }));
                   return;
                 }
                 handleInputChange(newValue);
@@ -365,15 +432,21 @@ export default function SearchBar() {
               onClose={() => {
                 setIsDropdownOpen(false);
               }}
-              onOpen={() => {
-                if (searchQuery.length >= 3) {
-                  setIsDropdownOpen(true);
-                  fetchServices(searchQuery);
-                } else if (searchQuery.length > 0 && searchQuery.length < 3 && searchHistory.length > 0) {
-                  setIsDropdownOpen(true);
+              onOpen={(event) => {
+                // Only open dropdown if user is actively typing or clicking
+                if (event?.type === 'click' || event?.type === 'keydown') {
+                  if (searchQuery.length >= 3) {
+                    setIsDropdownOpen(true);
+                    fetchServices(searchQuery);
+                  } else if (searchQuery.length > 0 && searchQuery.length < 3 && searchHistory.length > 0) {
+                    setIsDropdownOpen(true);
+                  }
                 }
               }}
+              open={showDropdown}
               freeSolo
+              forcePopupIcon={false}
+              disablePortal
               getOptionLabel={(option) => {
                 return typeof option === 'string' ? option : getLocalizedName(option);
               }}
@@ -432,56 +505,34 @@ export default function SearchBar() {
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                     backgroundColor: 'white',
                     marginTop: '8px',
-                    '& .MuiAutocomplete-listbox': {
-                      padding: 0,
-                      maxHeight: '300px',
-                      '& li': {
-                        padding: '8px 0',
-                        paddingLeft: '12px !important',
-                        borderBottom: '1px solid rgba(0,0,0,0.05)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        '&:last-child': {
-                          borderBottom: 'none'
-                        },
-                        '&:hover': {
-                          backgroundColor: 'rgba(0,0,0,0.04)'
-                        },
-                        '& .MuiTypography-root': {
-                          marginLeft: 0
-                        }
-                      }
-                    }
+                    zIndex: 1300
+                  }
+                },
+                popper: {
+                  sx: {
+                    zIndex: 1300
                   }
                 }
               }}
               loading={loading}
               loadingText={t('search.loading')}
               noOptionsText={searchQuery.length === 1 || searchQuery.length === 2 ? t('search.noHistory') : searchQuery.length < 3 ? t('search.minChars') : t('search.noResults')}
-              open={showDropdown}
-              forcePopupIcon={false}
-              disablePortal
             />
           </Box>
         </Box>
         <Box sx={{ 
-          flex: { xs: 1, sm: 0.45 }, // Equal flex for both inputs
+          flex: { xs: 1, sm: 0.45 },
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          width: { xs: '100%', sm: '45%' }, // Equal width for both inputs
+          width: { xs: '100%', sm: '45%' },
           minWidth: { xs: '100%', sm: '250px' },
+          zIndex: 0
         }}>
           <Box sx={searchContainerStyles}>
             <LocationInput
               value={location}
-              onChange={(newValue) => {
-                setLocation(newValue);
-                setAdvancedSearch(prev => ({
-                  ...prev,
-                  location: newValue
-                }));
-              }}
+              onChange={handleLocationChange}
               label={t('search.location')}
               placeholder={t('search.location')}
               fullWidth
@@ -501,13 +552,17 @@ export default function SearchBar() {
           gap: 0.5,
           justifyContent: { xs: 'center', sm: 'flex-start' },
           mt: { xs: 1, sm: 0 },
-          width: { xs: '100%', sm: 'auto' }
+          width: { xs: '100%', sm: 'auto' },
+          position: 'relative',
+          zIndex: 0
         }}>
           <IconButton
             type="submit"
             aria-label={t('search.submit')}
             sx={{ 
               ...buttonStyles,
+              position: 'relative',
+              zIndex: 0
             }}
           >
             <SearchIcon />
@@ -517,6 +572,8 @@ export default function SearchBar() {
             aria-label={t('search.openAdvanced')}
             sx={{ 
               ...buttonStyles,
+              position: 'relative',
+              zIndex: 0
             }}
           >
             <TuneIcon />
@@ -529,7 +586,6 @@ export default function SearchBar() {
         onClose={() => setOpenAdvanced(false)} 
         maxWidth="sm" 
         fullWidth
-        closeAfterTransition={false}
         aria-labelledby="advanced-search-dialog"
         PaperProps={{
           sx: {
@@ -576,96 +632,146 @@ export default function SearchBar() {
         <DialogContent>
           <Box role="form" aria-label={t('search.advancedSearchForm')}>
             <Grid container spacing={3}>
-              {[
-                { name: 'service', label: t('search.service'), type: 'autocomplete' },
-                { name: 'location', label: t('search.location'), type: 'location' },
-                { name: 'priceRange', label: t('search.priceRange'), type: 'text' },
-                { name: 'availability', label: t('search.availability'), type: 'text' }
-              ].map((field) => (
-                <Grid item xs={12} key={field.name}>
-                  {field.type === 'autocomplete' ? (
-                    <Autocomplete
-                      fullWidth
-                      options={services}
-                      value={advancedSearch.service}
-                      onChange={(e, newValue) => {
-                        if (newValue) {
-                          announceMessage(t('search.serviceSelected', { name: getLocalizedName(newValue) }));
-                          setAdvancedSearch({
-                            ...advancedSearch,
-                            service: newValue
-                          });
-                        } else {
-                          setAdvancedSearch({
-                            ...advancedSearch,
-                            service: null
-                          });
-                        }
-                      }}
-                      onInputChange={(event, newValue, reason) => {
-                        if (reason === 'reset') return;
-                        handleInputChange(newValue);
-                      }}
-                      getOptionLabel={(option) => getLocalizedName(option)}
-                      isOptionEqualToValue={(option, value) => option.service_id === value?.service_id}
-                      loading={loading}
-                      noOptionsText={searchQuery.length === 0 ? "Start typing the service needed" : t('search.noResults')}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          variant="outlined"
-                          placeholder={field.label}
-                          label={field.label}
-                          InputProps={{
-                            ...params.InputProps,
-                            'aria-label': field.label,
-                            endAdornment: (
-                              <>
-                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            ),
-                          }}
-                          sx={textFieldStyles}
-                        />
-                      )}
-                    />
-                  ) : field.type === 'location' ? (
-                    <LocationInput
-                      value={advancedSearch.location}
-                      onChange={(newValue) => {
-                        setLocation(newValue);
-                        setAdvancedSearch(prev => ({
-                          ...prev,
-                          location: newValue
-                        }));
-                      }}
-                      label={field.label}
-                      placeholder={field.label}
-                      fullWidth
-                      width="100%"
-                      sx={textFieldStyles}
-                    />
-                  ) : (
+              <Grid item xs={12}>
+                <Autocomplete
+                  id="advanced-service-search"
+                  fullWidth
+                  options={services}
+                  value={advancedSearch.service}
+                  onChange={(e, newValue) => handleAdvancedServiceChange(newValue)}
+                  onInputChange={(event, newValue, reason) => {
+                    if (reason === 'reset' || reason === 'clear') {
+                      setSearchQuery('');
+                      setAdvancedSearch(prev => ({
+                        ...prev,
+                        service: null
+                      }));
+                      return;
+                    }
+                    handleInputChange(newValue);
+                  }}
+                  getOptionLabel={(option) => {
+                    return typeof option === 'string' ? option : getLocalizedName(option);
+                  }}
+                  isOptionEqualToValue={(option, value) => option.service_id === value?.service_id}
+                  loading={loading}
+                  noOptionsText={searchQuery.length === 0 ? t('search.minChars') : t('search.noResults')}
+                  freeSolo
+                  renderInput={(params) => (
                     <TextField
+                      {...params}
                       fullWidth
                       variant="outlined"
-                      placeholder={field.label}
-                      label={field.label}
-                      value={advancedSearch[field.name as keyof typeof advancedSearch]}
-                      onChange={(e) => setAdvancedSearch({ 
-                        ...advancedSearch, 
-                        [field.name]: e.target.value 
-                      })}
+                      placeholder={t('search.service')}
+                      label={t('search.service')}
                       InputProps={{
-                        'aria-label': field.label
+                        ...params.InputProps,
+                        'aria-label': t('search.serviceInput'),
+                        endAdornment: (
+                          <>
+                            {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
                       }}
                       sx={textFieldStyles}
                     />
                   )}
-                </Grid>
-              ))}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.service_id} style={{ paddingLeft: '12px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                        {searchHistory.some(item => item.service_id === option.service_id) && searchQuery.length === 1 && (
+                          <HistoryIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                        )}
+                        <Typography 
+                          variant="body1" 
+                          sx={{ 
+                            fontWeight: 500,
+                            width: '100%',
+                            textAlign: 'left'
+                          }}
+                          role="option"
+                          aria-selected={props['aria-selected']}
+                        >
+                          {highlightMatch(getLocalizedName(option), searchQuery)}
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                  sx={{ 
+                    flex: 1,
+                    '& .MuiAutocomplete-endAdornment': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      position: 'absolute',
+                      right: '9px',
+                      top: '50%',
+                      transform: 'translateY(-50%)'
+                    },
+                    '& .MuiAutocomplete-clearIndicator': {
+                      visibility: searchQuery ? 'visible' : 'hidden',
+                      padding: '2px',
+                      color: 'action.active',
+                      '&:hover': {
+                        color: 'action.active',
+                        backgroundColor: 'action.hover'
+                      }
+                    },
+                    '& .MuiAutocomplete-clearIndicator svg': {
+                      fontSize: '18px',
+                      display: 'block'
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <LocationInput
+                  value={advancedSearch.location}
+                  onChange={(newValue) => {
+                    handleLocationChange(newValue);
+                  }}
+                  label={t('search.location')}
+                  placeholder={t('search.location')}
+                  fullWidth
+                  width="100%"
+                  sx={textFieldStyles}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder={t('search.priceRange')}
+                  label={t('search.priceRange')}
+                  value={advancedSearch.priceRange}
+                  onChange={(e) => setAdvancedSearch({ 
+                    ...advancedSearch, 
+                    priceRange: e.target.value 
+                  })}
+                  InputProps={{
+                    'aria-label': t('search.priceRange')
+                  }}
+                  sx={textFieldStyles}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder={t('search.availability')}
+                  label={t('search.availability')}
+                  value={advancedSearch.availability}
+                  onChange={(e) => setAdvancedSearch({ 
+                    ...advancedSearch, 
+                    availability: e.target.value 
+                  })}
+                  InputProps={{
+                    'aria-label': t('search.availability')
+                  }}
+                  sx={textFieldStyles}
+                />
+              </Grid>
             </Grid>
           </Box>
         </DialogContent>

@@ -56,11 +56,13 @@ const Navigation = () => {
   
   return (
     <Box 
+      component="div"
       sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
       role="group"
       aria-label={t('navigation.actions')}
     >
       <Box
+        component="div"
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -111,6 +113,7 @@ const Navigation = () => {
         )}
       </Box>
 
+      {/* Navigation Menu */}
       <Menu
         id="menu-appbar"
         anchorEl={anchorEl}
@@ -118,7 +121,6 @@ const Navigation = () => {
           vertical: 'bottom',
           horizontal: 'right',
         }}
-        keepMounted
         transformOrigin={{
           vertical: 'top',
           horizontal: 'right',
@@ -131,6 +133,11 @@ const Navigation = () => {
             minWidth: 200
           }
         }}
+        MenuListProps={{
+          'aria-labelledby': 'menu-button',
+          role: 'menu'
+        }}
+        keepMounted
       >
         {isAuthenticated ? (
           [
@@ -150,7 +157,7 @@ const Navigation = () => {
             </MenuItem>
           ]
         ) : (
-          <>
+          <Box component="div">
             <MenuItem 
               key="login"
               component={Link} 
@@ -184,7 +191,7 @@ const Navigation = () => {
             >
               {t('common.helpCenter', 'Help Center')}
             </MenuItem>
-          </>
+          </Box>
         )}
       </Menu>
     </Box>
@@ -245,6 +252,7 @@ const Footer = () => {
     >
       <Container maxWidth="lg">
         <Box 
+          component="div"
           sx={{ 
             py: 1,
             display: 'flex',
@@ -254,7 +262,7 @@ const Footer = () => {
           }}
         >
           {/* Language selector */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box component="div" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Button
               id="language-button"
               aria-controls={langOpen ? 'language-menu' : undefined}
@@ -274,10 +282,47 @@ const Footer = () => {
             >
               {currentLanguage}
             </Button>
+            <Menu
+              id="language-menu"
+              anchorEl={langAnchorEl}
+              open={langOpen}
+              onClose={handleClose}
+              MenuListProps={{
+                'aria-labelledby': 'language-button',
+                role: 'listbox',
+              }}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              PaperProps={{
+                sx: {
+                  mt: 1,
+                  minWidth: 120
+                }
+              }}
+              keepMounted
+            >
+              {languages.map((language) => (
+                <MenuItem
+                  key={language.code}
+                  onClick={() => handleLanguageSelect(language.code, language.label)}
+                  selected={i18n.language === language.code}
+                  role="option"
+                  aria-selected={i18n.language === language.code}
+                >
+                  {language.label}
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
 
           {/* Currency selector */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box component="div" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Button
               id="currency-button"
               aria-controls={currencyOpen ? 'currency-menu' : undefined}
@@ -297,62 +342,35 @@ const Footer = () => {
             >
               CAD
             </Button>
+            <Menu
+              id="currency-menu"
+              anchorEl={currencyAnchorEl}
+              open={currencyOpen}
+              onClose={handleClose}
+              MenuListProps={{
+                'aria-labelledby': 'currency-button',
+                role: 'listbox',
+              }}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              PaperProps={{
+                sx: {
+                  mt: 1,
+                  minWidth: 120
+                }
+              }}
+              keepMounted
+            >
+              <MenuItem onClick={handleClose}>$ CAD</MenuItem>
+              <MenuItem onClick={handleClose}>$ USD</MenuItem>
+            </Menu>
           </Box>
-
-          {/* Language Menu */}
-          <Menu
-            id="language-menu"
-            anchorEl={langAnchorEl}
-            open={langOpen}
-            onClose={handleClose}
-            MenuListProps={{
-              'aria-labelledby': 'language-button',
-              role: 'listbox',
-            }}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
-            }}
-            transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'center',
-            }}
-          >
-            {languages.map((language) => (
-              <MenuItem
-                key={language.code}
-                onClick={() => handleLanguageSelect(language.code, language.label)}
-                selected={i18n.language === language.code}
-                role="option"
-                aria-selected={i18n.language === language.code}
-              >
-                {language.label}
-              </MenuItem>
-            ))}
-          </Menu>
-
-          {/* Currency Menu */}
-          <Menu
-            id="currency-menu"
-            anchorEl={currencyAnchorEl}
-            open={currencyOpen}
-            onClose={handleClose}
-            MenuListProps={{
-              'aria-labelledby': 'currency-button',
-              role: 'listbox',
-            }}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
-            }}
-            transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'center',
-            }}
-          >
-            <MenuItem onClick={handleClose}>$ CAD</MenuItem>
-            <MenuItem onClick={handleClose}>$ USD</MenuItem>
-          </Menu>
         </Box>
       </Container>
     </Paper>
@@ -365,6 +383,7 @@ function AppContent() {
   return (
     <Router>
       <Box 
+        component="div"
         sx={{ 
           width: '100vw',
           minHeight: '100vh',
@@ -457,6 +476,7 @@ function AppContent() {
                   }}
                 >
                   <Box
+                    component="div"
                     sx={{
                       width: '100%',
                       maxWidth: 1400,

@@ -299,60 +299,121 @@ const LocationInput: React.FC<LocationInputProps> = ({
   return (
     <>
       <Autocomplete
+        id="location-autocomplete"
+        options={options}
+        getOptionLabel={(option) => typeof option === 'string' ? option : option.description}
+        filterOptions={(x) => x}
         freeSolo
+        includeInputInList
+        filterSelectedOptions
         value={value}
         inputValue={inputValue}
-        onChange={(_, newValue) => {
-          onChange(newValue || '');
-        }}
-        onInputChange={(_, newInputValue) => {
+        loading={loading}
+        onInputChange={(event, newInputValue) => {
           setInputValue(newInputValue);
         }}
-        options={options}
-        getOptionLabel={(option) => 
-          typeof option === 'string' ? option : option.description
-        }
-        loading={loading}
-        fullWidth={fullWidth}
-        disabled={disabled}
-        clearIcon={inputValue ? undefined : null}
+        onChange={(event, newValue) => {
+          if (typeof newValue === 'string') {
+            onChange(newValue);
+          } else if (newValue && 'description' in newValue) {
+            onChange(newValue.description);
+            announceMessage(t('location.selected', 'Selected location: {{location}}', { location: newValue.description }));
+          } else {
+            onChange('');
+          }
+        }}
+        sx={{
+          width: width || (fullWidth ? '100%' : 'auto'),
+          ...sx,
+          '& .MuiAutocomplete-endAdornment': {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            position: 'absolute',
+            right: '9px',
+            top: '50%',
+            transform: 'translateY(-50%)'
+          },
+          '& .MuiAutocomplete-clearIndicator': {
+            opacity: inputValue ? 1 : 0,
+            visibility: inputValue ? 'visible' : 'hidden',
+            padding: '2px',
+            marginRight: '4px',
+            color: 'action.active',
+            '&:hover': {
+              color: 'action.active',
+              backgroundColor: 'action.hover'
+            }
+          },
+          '& .MuiAutocomplete-clearIndicator svg': {
+            fontSize: '18px',
+            display: 'block'
+          }
+        }}
+        renderOption={(props, option) => (
+          <li {...props} key={option.place_id || 'fallback-key'}>
+            <div style={{ padding: '8px 4px' }}>
+              {typeof option === 'string' ? option : option.description}
+            </div>
+          </li>
+        )}
         renderInput={(params) => (
           <TextField
             {...params}
             label={label}
             placeholder={placeholder}
+            fullWidth={fullWidth}
             required={required}
+            disabled={disabled}
             variant={variant}
             error={error || !!apiError}
-            helperText={helperText || apiError}
+            helperText={apiError ? '' : helperText}
             InputProps={{
               ...params.InputProps,
               endAdornment: (
-                <>
+                <React.Fragment>
                   {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                  {params.InputProps.endAdornment}
-                  <Tooltip title={t('location.useCurrentLocation', 'Use current location')}>
+                  <Tooltip title={t('location.useGps', 'Use my location')}>
                     <IconButton
                       onClick={handleGpsLocation}
                       disabled={gpsLoading || disabled}
                       size="small"
-                      sx={{ ml: 0.5 }}
+                      sx={{ 
+                        padding: '2px',
+                        color: 'action.active',
+                        '&:hover': {
+                          color: 'primary.main',
+                          backgroundColor: 'action.hover'
+                        }
+                      }}
+                      aria-label={t('location.useGps', 'Use my location')}
                     >
-                      <MyLocationIcon fontSize="small" />
+                      {gpsLoading ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <MyLocationIcon fontSize="small" />
+                      )}
                     </IconButton>
                   </Tooltip>
-                </>
+                  {params.InputProps.endAdornment}
+                </React.Fragment>
               ),
             }}
           />
         )}
-        sx={{
-          width: width || (fullWidth ? '100%' : 'auto'),
-          ...sx,
-        }}
+        noOptionsText={apiError ? '' : t('location.noOptions', 'No locations found')}
+        loadingText={t('location.loading', 'Loading locations...')}
       />
       {apiError && (
-        <Alert severity="error" sx={{ mt: 1 }}>
+        <Alert 
+          severity="error" 
+          sx={{ mt: 1 }}
+          slotProps={{
+            root: {
+              'aria-label': apiError
+            }
+          }}
+        >
           {apiError}
         </Alert>
       )}
