@@ -404,7 +404,7 @@ function AppContent() {
           }}
         >
           <Toolbar 
-            sx={{ px: { xs: 2, sm: 4 }, display: 'flex', justifyContent: 'flex-end' }}
+            sx={{ px: { xs: 2, sm: 4 }, display: 'flex', justifyContent: 'flex-end', gap: 2 }}
             role="navigation"
             aria-label={t('navigation.main')}
           >
@@ -424,6 +424,20 @@ function AppContent() {
             >
               {t('app.title')}
             </Typography>
+            <Button
+              component={Link}
+              to="/offer-service"
+              sx={{
+                color: 'white',
+                textTransform: 'none',
+                fontSize: '0.95rem',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              {t('common.offerService', 'Offer your service')}
+            </Button>
             <Navigation />
           </Toolbar>
         </AppBar>
