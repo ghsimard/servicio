@@ -26,10 +26,10 @@ interface PhoneNumber {
 }
 
 const phoneTypes = [
-  'iPhone',
   'mobile',
-  'home',
   'work',
+  'iPhone',
+  'home',
   'main',
   'home fax',
   'work fax',

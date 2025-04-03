@@ -215,7 +215,7 @@ export default function SearchBar() {
   // Common styles for input fields - using theme for consistent styling with enhanced effects
   const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
-      transition: theme.transitions.create(['border-color', 'box-shadow', 'transform'], {
+      transition: theme.transitions.create(['border-color', 'transform'], {
         duration: theme.transitions.duration.shorter
       }),
       '& fieldset': { 
@@ -230,8 +230,7 @@ export default function SearchBar() {
         '& fieldset': { 
           borderColor: theme.palette.primary.main, 
           borderWidth: '2px' 
-        },
-        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+        }
       },
       '&.Mui-error fieldset': { 
         borderColor: theme.palette.error.main 
@@ -255,22 +254,19 @@ export default function SearchBar() {
   // Common styles for buttons using theme
   const buttonStyles = {
     bgcolor: 'white',
-    boxShadow: 3,
     color: theme.palette.text.primary,
     textTransform: 'none',
     fontSize: '0.95rem',
     p: '10px',
     minWidth: 0,
-    transition: theme.transitions.create(['background-color', 'box-shadow', 'transform'], {
+    transition: theme.transitions.create(['background-color', 'transform'], {
       duration: theme.transitions.duration.short
     }),
     '&:hover': {
       bgcolor: theme.palette.grey[100],
-      boxShadow: 4,
       transform: 'translateY(-1px)'
     },
     '&:active': {
-      boxShadow: 2,
       transform: 'translateY(0)'
     }
   };
@@ -289,15 +285,13 @@ export default function SearchBar() {
   const searchContainerStyles = {
     bgcolor: 'white',
     borderRadius: 2,
-    boxShadow: 3,
     display: 'flex',
     alignItems: 'center',
     width: '100%',
-    transition: theme.transitions.create(['box-shadow', 'transform'], {
+    transition: theme.transitions.create(['transform'], {
       duration: theme.transitions.duration.short
     }),
     '&:focus-within': {
-      boxShadow: 4,
       transform: 'translateY(-2px)'
     }
   };
@@ -615,6 +609,7 @@ export default function SearchBar() {
                       getOptionLabel={(option) => getLocalizedName(option)}
                       isOptionEqualToValue={(option, value) => option.service_id === value?.service_id}
                       loading={loading}
+                      noOptionsText={searchQuery.length === 0 ? "Start typing the service needed" : t('search.noResults')}
                       renderInput={(params) => (
                         <TextField
                           {...params}
