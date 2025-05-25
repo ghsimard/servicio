@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import React, { useState } from 'react';
 import theme from './theme';
 import ThemeProvider from './theme/ThemeProvider';
-import SearchBar from './components/SearchBar';
+// import SearchBar from './components/SearchBar';
+import JobMatcher from './components/JobMatcher';
 import { AccessibilityProvider, useAccessibility } from './contexts/AccessibilityContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoggingProvider } from './contexts/LoggingContext';
@@ -553,13 +554,14 @@ function AppContent() {
                     >
                       {t('app.subtitle')}
                     </Typography>
-                    <Box 
+                    {/* <Box 
                       sx={{ width: '100%' }}
                       role="search"
                       aria-label={t('search.label')}
                     >
                       <SearchBar />
-                    </Box>
+                    </Box> */}
+                    <JobMatcher />
                   </Box>
                 </Container>
               </Box>

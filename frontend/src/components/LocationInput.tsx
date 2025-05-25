@@ -17,6 +17,14 @@ interface PlacePrediction {
   place_id: string;
 }
 
+interface AddressComponents {
+  street: string;
+  city: string;
+  postalCode: string;
+  province: string;
+  country: string;
+}
+
 interface LocationInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -224,6 +232,55 @@ const LocationInput: React.FC<LocationInputProps> = ({
     throw lastError || new Error('Failed to get position after retries');
   };
 
+  const parseAddressComponents = (data: any): AddressComponents | null => {
+    try {
+      const address = data.address || {};
+      const components: AddressComponents = {
+        street: '',
+        city: '',
+        postalCode: '',
+        province: '',
+        country: ''
+      };
+
+      // Handle different address formats
+      if (address.road) {
+        components.street = `${address.house_number || ''} ${address.road}`.trim();
+      } else if (address.pedestrian) {
+        components.street = address.pedestrian;
+      }
+
+      // Handle city/town/village
+      components.city = address.city || address.town || address.village || '';
+
+      // Handle postal code
+      components.postalCode = address.postcode || '';
+
+      // Handle province/state
+      components.province = address.state || address.province || '';
+
+      // Handle country
+      components.country = address.country || '';
+
+      return components;
+    } catch (error) {
+      console.error('Error parsing address components:', error);
+      return null;
+    }
+  };
+
+  const formatAddress = (components: AddressComponents): string => {
+    const parts = [];
+
+    if (components.street) parts.push(components.street);
+    if (components.city) parts.push(components.city);
+    if (components.province) parts.push(components.province);
+    if (components.postalCode) parts.push(components.postalCode);
+    if (components.country) parts.push(components.country);
+
+    return parts.join(', ');
+  };
+
   const handleGpsLocation = async () => {
     if (!navigator.geolocation) {
       setApiError(t('location.gpsNotSupported', 'GPS is not supported by your browser'));
@@ -243,7 +300,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
       
       // Reverse geocode the coordinates
       const response = await fetch(
-        `${API_BASE_URL}/locations/reverse-geocode?lat=${latitude}&lng=${longitude}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lng=${longitude}&addressdetails=1`
       );
 
       if (!response.ok) {
@@ -256,10 +313,13 @@ const LocationInput: React.FC<LocationInputProps> = ({
         throw new Error(data.details || data.error);
       }
 
-      if (data.address) {
-        onChange(data.address);
-        setInputValue(data.address);
-        announceMessage(t('location.gpsSuccess', 'Location found: {{address}}', { address: data.address }));
+      const addressComponents = parseAddressComponents(data);
+      
+      if (addressComponents) {
+        const formattedAddress = formatAddress(addressComponents);
+        onChange(formattedAddress);
+        setInputValue(formattedAddress);
+        announceMessage(t('location.gpsSuccess', 'Location found: {{address}}', { address: formattedAddress }));
       } else {
         throw new Error('No address found in response');
       }
